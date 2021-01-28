@@ -60,6 +60,7 @@ struct pmu_desc {
 typedef enum {
 	SET_PMU_EVT_CNT = 0x0,
 	SET_PMU_CYCCNT_ENABLE = 0x1,
+	SET_PMU_BASE_OFFSET = 0x02
 } PMU_IPI_Type;
 
 struct cpu_pmu_hw *cpu_pmu_hw_init(void);

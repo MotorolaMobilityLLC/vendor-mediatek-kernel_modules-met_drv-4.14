@@ -98,11 +98,6 @@ static DEFINE_PER_CPU(int[MXNR_PMU_EVENTS], perfCntFirst);
 static DEFINE_PER_CPU(struct perf_event * [MXNR_PMU_EVENTS], pevent);
 static DEFINE_PER_CPU(struct perf_event_attr [MXNR_PMU_EVENTS], pevent_attr);
 static DEFINE_PER_CPU(int, perfSet);
-static DEFINE_PER_CPU(unsigned int, perf_task_init_done);
-static DEFINE_PER_CPU(int, perf_cpuid);
-static DEFINE_PER_CPU(struct delayed_work, cpu_pmu_dwork_setup);
-static DEFINE_PER_CPU(struct delayed_work*, perf_delayed_work_setup);
-static DEFINE_PER_CPU(struct delayed_work, cpu_pmu_dwork_down);
 static DEFINE_PER_CPU(int, cpu_status);
 
 #ifdef CPUPMU_V8_2
@@ -347,15 +342,37 @@ static int perf_thread_set_perf_events(int cpu)
 				continue;
 			}
 
-			MET_TRACE("[MET_PMU] cpu %d registered pmu slot: [%d] evt=%#04x\n", cpu, ev->hw.idx, pmu[i].event);
-			pr_debug("[MET_PMU] cpu %d registered pmu slot: [%d] evt=%#04x\n", cpu, ev->hw.idx, pmu[i].event);
+			/*
+			 * in perf-event implementation, hardware pmu slot and cycle counter
+			 * was mapped to perf_event::hw::idx as follows:
+			 *
+			 * | idx | hardware slot |
+			 * |-----+---------------|
+			 * |   0 | pmccntr_el0   |
+			 * |   1 | 0             |
+			 * |   2 | 1             |
+			 * |   3 | 2             |
+			 * |   4 | 3             |
+			 * |   5 | 4             |
+			 * |   6 | 5             |
+			 */
+			if (ev->hw.idx != 0) {
+				MET_TRACE("[MET_PMU] cpu %d registered in pmu slot: [%d] evt=%#04x\n",
+					  cpu, ev->hw.idx-1, pmu[i].event);
+				pr_debug("[MET_PMU] cpu %d registered in pmu slot: [%d] evt=%#04x\n",
+					 cpu, ev->hw.idx-1, pmu[i].event);
+			} else if (ev->hw.idx == 0) {
+				MET_TRACE("[MET_PMU] cpu %d registered cycle count evt=%#04x\n",
+					  cpu, pmu[i].event);
+				pr_debug("[MET_PMU] cpu %d registered cycle count evt=%#04x\n",
+					 cpu, pmu[i].event);
+			}
 
 			per_cpu(pevent, cpu)[i] = ev;
 			per_cpu(perfPrev, cpu)[i] = 0;
 			per_cpu(perfCurr, cpu)[i] = 0;
 			perf_event_enable(ev);
 			per_cpu(perfCntFirst, cpu)[i] = 1;
-
 
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
 			if (met_cpupmu.ondiemet_mode) {
@@ -378,42 +395,21 @@ static int perf_thread_set_perf_events(int cpu)
 	return 0;
 }
 
-static void perf_thread_setup(struct work_struct *work)
-{
-	int			cpu;
-	struct delayed_work	*dwork = to_delayed_work(work);
-
-	cpu = dwork->cpu;
-	if (per_cpu(perf_task_init_done, cpu) == 0) {
-		per_cpu(perf_task_init_done, cpu) = 1;
-		perf_thread_set_perf_events(cpu);
-	}
-}
-
 static void met_perf_cpupmu_start(int cpu)
 {
 	if (met_cpupmu.mode == 0)
 		return;
 
-	per_cpu(perf_cpuid, cpu) = cpu;
-	if (per_cpu(perf_delayed_work_setup, cpu) == NULL) {
-		struct delayed_work *dwork = &per_cpu(cpu_pmu_dwork_setup, cpu);
-		INIT_DELAYED_WORK(dwork, perf_thread_setup);
-		dwork->cpu = cpu;
-		schedule_delayed_work_on(cpu, dwork, 0);
-		per_cpu(perf_delayed_work_setup, cpu) = dwork;
-	}
+	perf_thread_set_perf_events(cpu);
 }
 
-static void perf_thread_down(struct work_struct *work)
+static void perf_thread_down(int cpu)
 {
-	struct delayed_work	*dwork = to_delayed_work(work);
-	int			cpu, i;
+	int			i;
 	struct perf_event	*ev;
 	int			event_count;
 	struct met_pmu		*pmu;
 
-	cpu = dwork->cpu;
 	if (per_cpu(perfSet, cpu) == 0)
 		return;
 
@@ -442,19 +438,11 @@ static void perf_thread_down(struct work_struct *work)
 			per_cpu(pevent, cpu)[i] = NULL;
 		}
 	}
-	per_cpu(perf_task_init_done, cpu) = 0;
-	per_cpu(perf_delayed_work_setup, cpu) = NULL;
 }
 
 static void met_perf_cpupmu_stop(int cpu)
 {
-	struct delayed_work	*dwork;
-
-	per_cpu(perf_cpuid, cpu) = cpu;
-	dwork = &per_cpu(cpu_pmu_dwork_down, cpu);
-	INIT_DELAYED_WORK(dwork, perf_thread_down);
-	dwork->cpu = cpu;
-	schedule_delayed_work_on(cpu, dwork, 0);
+	perf_thread_down(cpu);
 }
 
 static int cpupmu_create_subfs(struct kobject *parent)
@@ -530,19 +518,20 @@ static void cpupmu_start(void)
 {
 	int	cpu = raw_smp_processor_id();
 
-	if (met_cpu_pmu_method)
-		met_perf_cpupmu_start(cpu);
-	else {
+	if (!met_cpu_pmu_method) {
 		nr_arg[cpu] = 0;
 		cpu_pmu->start(cpu_pmu->pmu[cpu], cpu_pmu->event_count[cpu]);
+
+		met_perf_cpupmu_status = 1;
+		per_cpu(cpu_status, cpu) = MET_CPU_ONLINE;
 	}
-	met_perf_cpupmu_status = 1;
-	per_cpu(cpu_status, cpu) = MET_CPU_ONLINE;
 }
 
 
 static void cpupmu_unique_start(void)
 {
+	int cpu;
+
 #ifdef CPUPMU_V8_2
 	int ret = 0;
 	if (mtk_pmu_event_enable == 1){
@@ -575,6 +564,15 @@ static void cpupmu_unique_start(void)
 	MET_TRACE("[MET_PMU] met_cpu_pm_pmu_reconfig=%u\n", met_cpu_pm_pmu_reconfig);
 	pr_debug("[MET_PMU] met_cpu_pm_pmu_reconfig=%u\n", met_cpu_pm_pmu_reconfig);
 
+	if (met_cpu_pmu_method) {
+		for_each_possible_cpu(cpu) {
+			met_perf_cpupmu_start(cpu);
+
+			met_perf_cpupmu_status = 1;
+			per_cpu(cpu_status, cpu) = MET_CPU_ONLINE;
+		}
+	}
+
 	return;
 }
 
@@ -583,14 +581,21 @@ static void cpupmu_stop(void)
 	int	cpu = raw_smp_processor_id();
 
 	met_perf_cpupmu_status = 0;
-	if (met_cpu_pmu_method)
-		met_perf_cpupmu_stop(cpu);
-	else
+
+	if (!met_cpu_pmu_method)
 		cpu_pmu->stop(cpu_pmu->event_count[cpu]);
 }
 
 static void cpupmu_unique_stop(void)
 {
+	int cpu;
+
+	if (met_cpu_pmu_method) {
+		for_each_possible_cpu(cpu) {
+			met_perf_cpupmu_stop(cpu);
+		}
+	}
+
 #ifdef CPUPMU_V8_2
 	if (mtk_pmu_event_enable == 1)
 		cpu_pmu_debug_uninit();
@@ -841,6 +846,7 @@ static int cpupmu_process_argument(const char *arg, int len)
 				ev = perf_event_create(cpu, event_no, arg_nr);
 				if (ev == NULL) {
 					pr_debug("!!!!!!!! [MET_PMU] failed pmu alloction test (event_no=%#04x)\n", event_no);
+					goto arg_out;
 				} else {
 					perf_event_release(cpu, ev);
 				}
@@ -952,9 +958,11 @@ static int cycle_count_mode_enabled(int cpu) {
 
 static void ipi_config_pmu_counter_cnt(void) {
 
-	int ret, cpu, ii;
+	int ret, cpu, ii, cnt_num;
 	unsigned int rdata;
 	unsigned int ipi_buf[4];
+	struct hw_perf_event *hwc;
+	unsigned int base_offset;
 
 	for_each_possible_cpu(cpu) {
 		for (ii = 0; ii < 4; ii++)
@@ -966,15 +974,35 @@ static void ipi_config_pmu_counter_cnt(void) {
 		 *       total event number `counter_cnt', but controlled by
 		 *       an addtional argument `SET_PMU_CYCCNT_ENABLE' instead
 		 */
-		ipi_buf[1] = (cpu << 16) |
-		             ((cycle_count_mode_enabled(cpu) ?
-		              (counter_cnt[cpu]-1) : counter_cnt[cpu]) & 0xffff);
+		cnt_num = (cycle_count_mode_enabled(cpu) ?
+			   (counter_cnt[cpu]-1) : counter_cnt[cpu]);
+		ipi_buf[1] = (cpu << 16) | (cnt_num & 0xffff);
 
-		MET_TRACE("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, counter_cnt[cpu]);
-		pr_debug("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, counter_cnt[cpu]);
+		MET_TRACE("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, cnt_num);
+		pr_debug("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, cnt_num);
 
 		MET_TRACE("[MET_PMU][IPI_CONFIG] sspm_buf_available=%d, in_interrupt()=%lu\n", sspm_buf_available, in_interrupt());
 		pr_debug("[MET_PMU][IPI_CONFIG] sspm_buf_available=%d, in_interrupt()=%lu\n", sspm_buf_available, in_interrupt());
+
+		if (sspm_buf_available == 1) {
+			ret = met_ipi_to_sspm_command((void *) ipi_buf, 0, &rdata, 1);
+		}
+
+		for (ii = 0; ii < 4; ii++)
+			ipi_buf[ii] = 0;
+
+		if (per_cpu(pevent, cpu)[0]) {
+			hwc = &(per_cpu(pevent, cpu)[0]->hw);
+			base_offset = hwc->idx-1;
+		} else {
+			base_offset = 0;
+		}
+
+		ipi_buf[0] = MET_MAIN_ID | (MID_PMU << MID_BIT_SHIFT) | MET_ARGU | SET_PMU_BASE_OFFSET;
+		ipi_buf[1] = (cpu << 16) | (base_offset & 0xffff);
+
+		MET_TRACE("[MET_PMU][IPI_CONFIG] core=%d, base offset set to %lu\n", cpu, base_offset);
+		pr_debug("[MET_PMU][IPI_CONFIG] core=%d, base offset set to %lu\n", cpu, base_offset);
 
 		if (sspm_buf_available == 1) {
 			ret = met_ipi_to_sspm_command((void *) ipi_buf, 0, &rdata, 1);
@@ -998,12 +1026,71 @@ static void ipi_config_pmu_counter_cnt(void) {
 	}
 }
 
-static void sspm_pmu_unique_start(void) {
+static int __is_perf_event_hw_slot_seq_order(int cpu) {
 
-	ipi_config_pmu_counter_cnt();
+	struct hw_perf_event *hwc, *hwc_prev;
+	int event_count = cpu_pmu->event_count[cpu];
+	int ii;
+
+	/*
+	 * perf-event descriptor list would not have any hole
+	 * (excepts special 0xff, which will always be the last element)
+	 */
+	if (per_cpu(pevent, cpu)[0] == NULL)
+		return 1;
+
+	/*
+	 * XXX: no need to check the last slot,
+	 *      which is reserved for 0xff
+	 */
+	for (ii = 1; ii < event_count - 1; ii++) {
+
+		if (per_cpu(pevent, cpu)[ii] == NULL)
+			return 1;
+
+		hwc = &(per_cpu(pevent, cpu)[ii]->hw);
+		hwc_prev = &(per_cpu(pevent, cpu)[ii-1]->hw);
+
+		if (hwc->idx != hwc_prev->idx + 1)
+			return 0;
+	}
+
+	return 1;
+}
+
+static int __validate_sspm_compatibility(void) {
+
+	int cpu;
+
+	for_each_possible_cpu(cpu) {
+
+		if (!__is_perf_event_hw_slot_seq_order(cpu)) {
+			MET_TRACE("[MET_PMU] pmu not sequentially allocated on cpu %d\n"
+				  ,cpu);
+			pr_debug("[MET_PMU] pmu not sequentially allocated on cpu %d\n"
+				 ,cpu);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static void sspm_pmu_unique_start(void) {
 
 	if (met_cpupmu.ondiemet_mode == 1)
 		cpupmu_unique_start();
+
+	if (met_cpupmu.ondiemet_mode == 1) {
+		if (__validate_sspm_compatibility() == -1) {
+			MET_TRACE("[MET_PMU] turned off sspm side polling\n");
+			pr_debug("[MET_PMU] turned off sspm side polling\n");
+			/* return without sending init IPIs, leaving sspm side to poll nothing */
+			return;
+		}
+	}
+
+	ipi_config_pmu_counter_cnt();
 }
 
 static void sspm_pmu_unique_stop(void)
