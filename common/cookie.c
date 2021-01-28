@@ -64,7 +64,7 @@ static void get_kernel_cookie(unsigned long pc, struct cookie_info *pinfo)
 	if (mod) {
 		off = pc - (unsigned long)mod->core_layout.base;
 		ret = snprintf(pinfo->strbuf + pinfo->strlen, LINE_SIZE - pinfo->strlen,
-			       ",%s,%lx", mod->name, off);
+			       ",%s.ko,%lx", mod->name, off);
 		pinfo->strlen += ret;
 		/* cookie(current->comm, pc, mod->name, off, 1); */
 	} else
