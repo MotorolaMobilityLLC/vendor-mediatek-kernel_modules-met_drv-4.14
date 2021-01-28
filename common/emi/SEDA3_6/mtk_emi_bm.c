@@ -12,7 +12,10 @@
 #include "mtk_typedefs.h"
 #include "core_plf_init.h"
 #include "mtk_emi_bm.h"
+
+#ifdef MET_REG_ARRD
 #include "met_reg_addr.h"
+#endif
 
 #include "met_drv.h"
 #include "interface.h"
@@ -165,7 +168,7 @@ int MET_BM_Init(void)
 	/*emi*/
 	/*int idx;*/
 	unsigned int emi_no;
-
+#ifdef MET_REG_ARRD
 	for(emi_no=0; emi_no<EMI_NUM ;emi_no++)
 	{
 		BaseAddrEMI[emi_no] = 0;
@@ -193,6 +196,9 @@ int MET_BM_Init(void)
 	}
 
 	return 0;
+#else
+	return -1;
+#endif
 }
 
 

@@ -17,7 +17,10 @@
 #include "interface.h"
 
 #include "met_dramc.h"
+
+#ifdef MET_REG_ARRD
 #include "met_reg_addr.h"
+#endif
 
 #undef	DEBUG
 #undef	debug_reg

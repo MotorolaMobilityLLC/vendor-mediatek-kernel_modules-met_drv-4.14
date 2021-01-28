@@ -4,6 +4,7 @@
  *
  */
 #ifndef __MET_REG_ADDR_H__
+#define __MET_REG_ADDR_H__
 
 #define EMI_REG_BASE           (0x10219000)
 #define EMI_REG_SIZE		   0x1000

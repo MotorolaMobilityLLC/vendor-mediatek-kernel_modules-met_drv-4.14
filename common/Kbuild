@@ -155,6 +155,12 @@ ifeq ($(EMI_LOWEFF_SUPPORT), y)
     subdir-ccflags-y += -DEMI_LOWEFF_SUPPORT
 endif
 
+ifneq ($(wildcard $(MET_PLF_DIR)/met_reg_addr.h),)
+    ccflags-y += -DMET_REG_ARRD
+else
+    $(info ======= there is no $(MET_PLF_DIR)/met_reg_addr.h, will use API to get addr info ========)
+endif
+
 ################################################################################
 # MET_GPU
 ################################################################################
@@ -672,6 +678,12 @@ endif
 EMI_LOWEFF_SUPPORT := $(if $(EMI_LOWEFF_SUPPORT),$(EMI_LOWEFF_SUPPORT),n)
 ifeq ($(EMI_LOWEFF_SUPPORT), y)
     subdir-ccflags-y += -DEMI_LOWEFF_SUPPORT
+endif
+
+ifneq ($(wildcard $(MET_PLF_DIR)/met_reg_addr.h),)
+    ccflags-y += -DMET_REG_ARRD
+else
+    $(info ======= there is no $(MET_PLF_DIR)/met_reg_addr.h, will use API to get addr info ========)
 endif
 
 ################################################################################

@@ -4,6 +4,7 @@
  *
  */
 #ifndef __MET_REG_ADDR_H__
+#define __MET_REG_ADDR_H__
 
 #define EMI_REG_BASE           (0x10219000)
 #define SUB_EMI_REG_BASE       (0x1021D000)
