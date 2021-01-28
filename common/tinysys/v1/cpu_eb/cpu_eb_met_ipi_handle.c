@@ -53,11 +53,6 @@ extern char *met_get_platform(void);
  * internal function declaration
  *****************************************************************************/
 static void _log_done_cb(const void *p);
-static int _met_ipi_cb(
-	unsigned int ipi_id,
-	void *prdata,
-	void *data,
-	unsigned int len);
 static int _cpu_eb_recv_thread(void *data);
 
 
@@ -65,7 +60,6 @@ static int _cpu_eb_recv_thread(void *data);
  * external variable declaration
  *****************************************************************************/
 int cpu_eb_buf_available;
-EXPORT_SYMBOL(cpu_eb_buf_available);
 
 
 /*****************************************************************************
@@ -101,7 +95,7 @@ void start_cpu_eb_ipi_recv_thread()
 	}
 
 	// Tinysys send ipi to APSYS
-	ret = mtk_ipi_register(mcupm_ipidev_symbol, IPIR_C_MET, _met_ipi_cb,
+	ret = mtk_ipi_register(mcupm_ipidev_symbol, IPIR_C_MET, NULL,
 				NULL, (void *) &recv_buf);
 	if (ret) {
 		PR_BOOTMSG("mtk_ipi_register:%d failed:%d\n", IPIR_C_MET, ret);
@@ -323,37 +317,6 @@ static void _log_done_cb(const void *p)
 }
 
 
-static int _met_ipi_cb(unsigned int ipi_id, void *prdata, void *data, unsigned int len)
-{
-	unsigned int cmd;
-
-	if (cpu_eb_recv_thread_comp == 1) {
-		PR_BOOTMSG("eb %s %d\n", __FUNCTION__, __LINE__);
-		return 0;
-	}
-
-	cmd = recv_buf[0] & MET_SUB_ID_MASK;
-	switch (cmd) {
-	case MET_DUMP_BUFFER:	/* mbox 1: start index; 2: size */
-		cpu_eb_buffer_dumping = 1;
-		ridx = recv_buf[1];
-		widx = recv_buf[2];
-		log_size = recv_buf[3];
-		break;
-
-	case MET_CLOSE_FILE:	/* no argument */
-		/* do close file */
-		ridx = recv_buf[1];
-		widx = recv_buf[2];
-		break;
-
-	default:
-		break;
-	}
-	return 0;
-}
-
-
 static int _cpu_eb_recv_thread(void *data)
 {
 	int ret = 0;
@@ -374,6 +337,10 @@ static int _cpu_eb_recv_thread(void *data)
 		cmd = recv_buf[0] & MET_SUB_ID_MASK;
 		switch (cmd) {
 		case MET_DUMP_BUFFER:	/* mbox 1: start index; 2: size */
+			cpu_eb_buffer_dumping = 1;
+			ridx = recv_buf[1];
+			widx = recv_buf[2];
+			log_size = recv_buf[3];
 			if (widx < ridx) {	/* wrapping occurs */
 				wlen = log_size - ridx;
 				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
@@ -388,6 +355,8 @@ static int _cpu_eb_recv_thread(void *data)
 			break;
 
 		case MET_CLOSE_FILE:	/* no argument */
+			ridx = recv_buf[1];
+			widx = recv_buf[2];
 			if (widx < ridx) {	/* wrapping occurs */
 				wlen = log_size - ridx;
 				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
