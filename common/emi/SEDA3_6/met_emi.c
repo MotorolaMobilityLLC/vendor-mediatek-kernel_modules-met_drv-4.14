@@ -1803,6 +1803,9 @@ static int emi_print_header(char *buf, int len)
 		output_buf[(PAGE_SIZE/4) - 1] = '\0';
 
 		len = snprintf(buf, PAGE_SIZE, "%s", output_buf);
+		if (len < 0)
+			PR_BOOTMSG("emi_print_header snprintf return err[%d]\n",len);
+
 		output_str_len += len;
 		met_sspm_emi.header_read_again = 1;
 
@@ -1810,7 +1813,8 @@ static int emi_print_header(char *buf, int len)
 	}
 	else{
 		len = snprintf(buf, PAGE_SIZE, "%s\n", header_str+output_str_len);
-
+		if (len < 0)
+			PR_BOOTMSG("emi_print_header snprintf return err[%d]\n",len);
 		/* reset state */
 		met_sspm_emi.header_read_again = 0;
 		output_header_len = 0;
