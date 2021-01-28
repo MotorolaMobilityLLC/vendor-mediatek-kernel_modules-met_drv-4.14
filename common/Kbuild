@@ -20,6 +20,7 @@ ccflags-y += -I$(srctree)/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
 
 ccflags-y += $(EXTRA_ARGS) $(EXTRA_CFLAGS)
 ccflags-y += -DMTK_PLATFORM=$(MTK_PLATFORM)
@@ -147,9 +148,12 @@ ifneq ($(FEATURE_GPU), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_GPU = n
         $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_GPU ========)
     endif
 
@@ -228,9 +232,12 @@ ifneq ($(FEATURE_PTPOD), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_PTPOD = n
         $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_PTPOD ========)
     endif
 
@@ -365,10 +372,10 @@ $(info ======== MET Built in ... ========)
 MET_DRV_DIR := ../../../../../vendor/mediatek/kernel_modules/met_drv/$(CONFIG_KERVER_VERSION)
 MET_CORE := $(MET_DRV_DIR)/common
 
-ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.include),)
-    include $(MET_PLF_DIR)/Kbuild.platform.include
+ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.h),)
+    include $(MET_PLF_DIR)/Kbuild.platform.h
 else
-    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.include ========)
+    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.h ========)
 endif
 
 ccflags-y += -DCONFIG_MET_MODULE
@@ -379,6 +386,7 @@ ccflags-y += -I$(srctree)/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
 
 ccflags-y += $(EXTRA_ARGS) $(EXTRA_CFLAGS)
 ccflags-y += -DMTK_PLATFORM=$(MTK_PLATFORM)
@@ -463,9 +471,12 @@ ifneq ($(FEATURE_GPU), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_GPU = n
         $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_GPU ========)
     endif
 
@@ -544,9 +555,12 @@ ifneq ($(FEATURE_PTPOD), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_PTPOD = n
         $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_PTPOD ========)
     endif
 

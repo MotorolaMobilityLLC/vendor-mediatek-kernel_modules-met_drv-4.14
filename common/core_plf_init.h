@@ -44,7 +44,8 @@ extern bool mtk_get_vsync_offset_debug_status(unsigned int *pui32EventStatus);
 extern bool mtk_enable_gpu_perf_monitor(bool enable);
 extern bool mtk_get_gpu_pmu_init(GPU_PMU *pmus, int pmu_size, int *ret_size);
 extern bool mtk_get_gpu_pmu_swapnreset(GPU_PMU *pmus, int pmu_size);
-
+extern bool mtk_get_gpu_pmu_deinit(void);
+extern bool mtk_get_gpu_pmu_swapnreset_stop(void);
 
 extern bool (*mtk_get_gpu_loading_symbol)(unsigned int *pLoading);
 extern bool (*mtk_get_gpu_block_symbol)(unsigned int *pBlock);
@@ -72,6 +73,8 @@ extern bool (*mtk_register_gpu_power_change_symbol)(const char *name,
 extern bool (*mtk_unregister_gpu_power_change_symbol)(const char *name);
 
 
+extern unsigned int mt_gpufreq_get_cur_freq(void);
+extern unsigned int mt_gpufreq_get_thermal_limit_freq(void);
 extern unsigned int (*mt_gpufreq_get_cur_freq_symbol)(void);
 extern unsigned int (*mt_gpufreq_get_thermal_limit_freq_symbol)(void);
 
@@ -135,6 +138,8 @@ extern struct metdevice met_sspm_smi;
 #include <mach/mtk_cpufreq_api.h>
 #include <mtk_cpufreq_config.h>
 
+extern unsigned int mt_gpufreq_get_cur_volt(void);
+extern unsigned int mt_cpufreq_get_cur_volt(unsigned int cluster_id);
 extern unsigned int (*mt_gpufreq_get_cur_volt_symbol)(void);
 extern unsigned int (*mt_cpufreq_get_cur_volt_symbol)(unsigned int cluster_id);
 
