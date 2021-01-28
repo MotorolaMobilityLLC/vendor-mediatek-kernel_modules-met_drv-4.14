@@ -619,7 +619,7 @@ static int create_gpu_pmu_list(void)
 	int i = 0;
 
 	if (mtk_get_gpu_pmu_init_symbol) {
-		ret = mtk_get_gpu_pmu_init(NULL, 0, &pmu_cnt);
+		ret = mtk_get_gpu_pmu_init_symbol(NULL, 0, &pmu_cnt);
 		if (pmu_cnt == 0 || ret == 0)
 			return 0;
 	} else
@@ -628,7 +628,7 @@ static int create_gpu_pmu_list(void)
 	pmu_list = kmalloc_array(pmu_cnt, sizeof(GPU_PMU), GFP_KERNEL);
 	if (pmu_list) {
 		memset(pmu_list, 0x00, sizeof(GPU_PMU)*pmu_cnt);
-		ret = mtk_get_gpu_pmu_init(pmu_list, pmu_cnt, NULL);
+		ret = mtk_get_gpu_pmu_init_symbol(pmu_list, pmu_cnt, NULL);
 
 		memset(pmu_str, 0x00, MAX_PMU_STR_LEN);
 		len = snprintf(pmu_str, MAX_PMU_STR_LEN, "%s", pmu_list[0].name);
@@ -819,10 +819,15 @@ static void gpu_stall_delete_subfs(void)
 
 static void gpu_stall_start(void)
 {
-	writel(0x00010001, io_addr_gpu_stall+OFFSET_STALL_GPU_M0_CHECK);
-	writel(0x00010001, io_addr_gpu_stall+OFFSET_STALL_GPU_M1_CHECK);
-	writel(0x00010001, io_addr_gpu_stall+OFFSET_STALL_GPU_M0_EMI_CHECK);
-	writel(0x00010001, io_addr_gpu_stall+OFFSET_STALL_GPU_M1_EMI_CHECK);
+#ifdef GPU_STALL_CNT_SINGLE
+	unsigned int value = 0x00000001;
+#else
+	unsigned int value = 0x00010001;
+#endif
+	writel(value, io_addr_gpu_stall+OFFSET_STALL_GPU_M0_CHECK);
+	writel(value, io_addr_gpu_stall+OFFSET_STALL_GPU_M1_CHECK);
+	writel(value, io_addr_gpu_stall+OFFSET_STALL_GPU_M0_EMI_CHECK);
+	writel(value, io_addr_gpu_stall+OFFSET_STALL_GPU_M1_EMI_CHECK);
 }
 
 static void gpu_stall_stop(void)
@@ -853,8 +858,13 @@ static void gpu_stall_timed_polling(unsigned long long stamp, int cpu)
 	GPU_STALL_RAW();
 }
 
+#ifdef GPU_STALL_CNT_SINGLE
+static char g_pComGPUStallHeader[] =
+	"met-info [000] 0.0: met_gpu_stall_header: M0_WR,M0_RD,M1_WR,M1_RD\n";
+#else
 static char g_pComGPUStallHeader[] =
 	"met-info [000] 0.0: met_gpu_stall_header: M0_STATUS_1,M1_STATUS_1,M0_STATUS_2,M1_STATUS_2\n";
+#endif
 static int gpu_stall_print_header(char *buf, int len)
 {
 	return snprintf(buf, PAGE_SIZE, g_pComGPUStallHeader);

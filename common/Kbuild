@@ -122,10 +122,9 @@ endif
 FEATURE_SSPM_EMI := $(if $(FEATURE_SSPM_EMI),$(FEATURE_SSPM_EMI),y)
 $(info FEATURE_SSPM_EMI = $(FEATURE_SSPM_EMI))
 
-MET_EMI := $(if $(filter n,$(FEATURE_SSPM_EMI)),n,y)
-
 ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
     ifneq ($(FEATURE_ONDIEMET), n)
+        MET_EMI := $(if $(filter n,$(FEATURE_SSPM_EMI)),n,y)
         ifeq ("$(EMI_SEDA_VERSION)", "SEDA3_5")
             met-$(MET_EMI) += $(MET_CORE)/met_emi_35.o \
                     $(MET_CORE)/mtk_emi_bm_35.o
@@ -170,6 +169,13 @@ ifneq ($(FEATURE_GPU), n)
         MET_GPU = n
         $(info ======== CONFIG_MTK_GPU_SUPPORT = n ========)
         $(info ======== disable MET_GPU ========)
+    endif
+
+    GPU_STALL_CNT_TYPE := $(if $(GPU_STALL_CNT_TYPE),$(GPU_STALL_CNT_TYPE),multiple)
+    $(info GPU_STALL_CNT_TYPE = $(GPU_STALL_CNT_TYPE))
+
+    ifeq ("$(GPU_STALL_CNT_TYPE)", "single")
+        ccflags-y += -DGPU_STALL_CNT_SINGLE
     endif
 else
     MET_GPU := n
@@ -460,10 +466,9 @@ endif
 FEATURE_SSPM_EMI := $(if $(FEATURE_SSPM_EMI),$(FEATURE_SSPM_EMI),y)
 $(info FEATURE_SSPM_EMI = $(FEATURE_SSPM_EMI))
 
-MET_EMI := $(if $(filter n,$(FEATURE_SSPM_EMI)),n,y)
-
 ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
     ifneq ($(FEATURE_ONDIEMET), n)
+        MET_EMI := $(if $(filter n,$(FEATURE_SSPM_EMI)),n,y)
         ifeq ("$(EMI_SEDA_VERSION)", "SEDA3_5")
             obj-$(MET_EMI) += $(MET_CORE)/met_emi_35.o \
                     $(MET_CORE)/mtk_emi_bm_35.o
@@ -507,6 +512,13 @@ ifneq ($(FEATURE_GPU), n)
         MET_GPU = n
         $(info ======== CONFIG_MTK_GPU_SUPPORT = n ========)
         $(info ======== disable MET_GPU ========)
+    endif
+
+    GPU_STALL_CNT_TYPE := $(if $(GPU_STALL_CNT_TYPE),$(GPU_STALL_CNT_TYPE),multiple)
+    $(info GPU_STALL_CNT_TYPE = $(GPU_STALL_CNT_TYPE))
+
+    ifeq ("$(GPU_STALL_CNT_TYPE)", "single")
+        ccflags-y += -DGPU_STALL_CNT_SINGLE
     endif
 else
     MET_GPU := n
