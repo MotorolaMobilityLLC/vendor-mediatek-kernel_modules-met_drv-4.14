@@ -1197,7 +1197,7 @@ ssize_t wsct_rw_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		/*PR_BOOTMSG("token: %s\n",token);/*
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
