@@ -537,7 +537,7 @@ static int smi_process_argument(const char *__restrict__ arg, int len)
 
 		/* Set mode */
 		met_sspm_smi.mode = 1;
-		ondiemet_module[ONDIEMET_SSPM] |= ID_CPU_INFO_MAPPING;
+		ondiemet_module[ONDIEMET_SSPM] |= ID_SMI;
 	}
 
 	return 0;
