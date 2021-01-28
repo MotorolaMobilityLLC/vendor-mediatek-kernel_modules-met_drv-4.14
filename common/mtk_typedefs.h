@@ -317,31 +317,31 @@
 
 
 #define SNPRINTF(str, size, format, ...) ({\
-       int ret; \
-       ret = snprintf(str, size, format, ##__VA_ARGS__); \
-       if (ret < 0 || ret >= size) \
+       int _r_e_t_; \
+       _r_e_t_ = snprintf(str, size, format, ##__VA_ARGS__); \
+       if (_r_e_t_ < 0 || _r_e_t_ >= size) \
                PR_BOOTMSG("!!ERROR: SNPRINTF fail!!\n"); \
-       ret; \
+       _r_e_t_; \
        })
 /*
 #define FWRITE(buf, size, nmemb, fstream) ({\
-       int ret; \
-       ret = fwrite(buf, size, nmemb, fstream); \
-       if (ret < nmemb) \
+       int _r_e_t_; \
+       _r_e_t_ = fwrite(buf, size, nmemb, fstream); \
+       if (_r_e_t_ < nmemb) \
                PR_BOOTMSG("!!ERROR: file content could be truncated!!\n"); \
        })
 
 #define FPRINTF(fstream, format, ...) ({\
-       int ret; \
-       ret = fprintf(fstream, format, ##__VA_ARGS__); \
-       if (ret < 0) \
+       int _r_e_t_; \
+       _r_e_t_ = fprintf(fstream, format, ##__VA_ARGS__); \
+       if (_r_e_t_ < 0) \
                PR_BOOTMSG("!!ERROR: fprintf fail!!\n"); \
        })
 
 #define FPUTS(str, fstream) ({\
-       int ret; \
-       ret = fputs(str, fstream); \
-       if (ret < 0) \
+       int _r_e_t_; \
+       _r_e_t_ = fputs(str, fstream); \
+       if (_r_e_t_ < 0) \
                PR_BOOTMSG("!!ERROR: fputs fail!!\n"); \
        })
 
