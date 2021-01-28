@@ -33,6 +33,7 @@ extern struct metdevice met_trace_event;
 extern struct metdevice met_dummy_header;
 extern struct metdevice met_backlight;
 extern struct metdevice met_mcupm;
+extern struct metdevice met_cpu_pmue;
 
 /* This variable will decide which method to access the CPU PMU counter */
 /*     0: access registers directly */

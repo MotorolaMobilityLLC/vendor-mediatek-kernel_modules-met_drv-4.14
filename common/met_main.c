@@ -237,7 +237,7 @@ static int met_create_cpu_topology(void)
 				}
 
 				met_set_cpu_topology(start_core_id, cluster_core_num);
-				start_core_id = cluster_core_num;
+				start_core_id += cluster_core_num;
 			}
 		}
 	}

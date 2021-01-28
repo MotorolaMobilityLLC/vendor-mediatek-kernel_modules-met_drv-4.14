@@ -27,6 +27,7 @@
 #elif defined(TINYSYS_SSPM_SUPPORT)
 #include "tinysys_sspm.h"
 #include "tinysys_mgr.h" /* for ondiemet_module */
+#include "sspm_met_ipi_handle.h"
 #endif
 #endif
 

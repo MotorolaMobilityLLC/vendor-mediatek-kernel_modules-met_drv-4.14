@@ -1421,6 +1421,9 @@ int fs_reg(int met_minor)
 	met_register(&met_mcupm);
 #endif
 #endif
+#ifdef MET_CPU_PMUE_SUPPORT
+	met_register(&met_cpu_pmue);
+#endif
 
 	met_register(&met_backlight);
 	met_ext_api.enable_met_backlight_tag = enable_met_backlight_tag_real;
@@ -1453,6 +1456,10 @@ void fs_unreg(void)
 
 #ifdef MET_USER_EVENT_SUPPORT
 	tag_unreg();
+#endif
+
+#ifdef MET_CPU_PMUE_SUPPORT
+	met_deregister(&met_cpu_pmue);
 #endif
 
 #ifdef FEATURE_MCUPM_NUM
