@@ -74,6 +74,7 @@ DECLARE_PER_CPU(char[MET_STRBUF_SIZE], met_strbuf);
 
 #define MET_TRACE(FORMAT, args...) \
 	do { \
+		int _met_trace_str; \
 		char *pmet_strbuf; \
 		preempt_disable(); \
 		if (in_nmi()) \
@@ -85,10 +86,11 @@ DECLARE_PER_CPU(char[MET_STRBUF_SIZE], met_strbuf);
 		else \
 			pmet_strbuf = per_cpu(met_strbuf, smp_processor_id()); \
 		if (met_mode & MET_MODE_TRACE_CMD) \
-			snprintf(pmet_strbuf, MET_STRBUF_SIZE, "%s: " FORMAT, __func__, ##args); \
+			_met_trace_str = snprintf(pmet_strbuf, MET_STRBUF_SIZE, "%s: " FORMAT, __func__, ##args); \
 		else \
-			snprintf(pmet_strbuf, MET_STRBUF_SIZE, FORMAT, ##args); \
-		TRACE_PUTS(pmet_strbuf); \
+			_met_trace_str = snprintf(pmet_strbuf, MET_STRBUF_SIZE, FORMAT, ##args); \
+		if (_met_trace_str > 0) \
+			TRACE_PUTS(pmet_strbuf); \
 		my_preempt_enable(); \
 	} while (0)
 

@@ -232,7 +232,7 @@ void MET_BM_DeInit(void)
 
 void MET_BM_SaveCfg(void)
 {
-	int i,j;
+	int i;
 
 	/* emi central */
 	for (i = 0; i < EMI_CONFIG_MX_NR; i++)
@@ -256,7 +256,7 @@ void MET_BM_SaveCfg(void)
 
 void MET_BM_RestoreCfg(void)
 {
-	int i,j;
+	int i;
 
 	/* emi central */
 	for (i = 0; i < EMI_CONFIG_MX_NR; i++)
@@ -1001,8 +1001,6 @@ int emi_inited;
 char default_val[FILE_NODE_DATA_LEN] = {'\0'};
 
 void _clear_default_val(void) {
-	int i;
-
 	met_emi_default_val[e_MET_DRAM_FREQ] = DRAM_FREQ_DEFAULT;
 	met_emi_default_val[e_MET_DRAM_TYPE] = DRAM_TYPE_DEFAULT;
 	met_emi_default_val[e_MET_DDR_RATIO] = DDR_RATIO_DEFAULT;
@@ -1015,13 +1013,16 @@ ssize_t default_val_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= default_val;
 	char *_id = NULL, *_value = NULL;
 	int id_int = 0;
 
 	_clear_default_val();
 
-	snprintf(default_val, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(default_val, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	default_val[n-1]='\0';
 
 
@@ -1098,15 +1099,17 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 	don't clear the setting, do this by echo 1 > clear_setting
 	*/
 
+	int ret;
 	char *token, *cur= msel_group_ext;
 	char *_id = NULL, *_master_group = NULL;
 	int id_int = 0;
 
 	_clear_msel_group_ext();
 
-	snprintf(msel_group_ext, FILE_NODE_DATA_LEN, "%s", buf);
-	msel_group_ext[n-1]='\0';
+	ret = snprintf(msel_group_ext, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
 
+	msel_group_ext[n-1]='\0';
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -1180,13 +1183,16 @@ ssize_t wsct_rw_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= wsct_rw;
 	char *_id = NULL, *_rw_type = NULL;
 	int id_int = 0;
 
 	_clear_wsct_rw();
 
-	snprintf(wsct_rw, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(wsct_rw, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	wsct_rw[n-1]='\0';
 
 	while (cur != NULL) {
@@ -1278,13 +1284,16 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= wsct_high_priority_enable;
 	char *_id = NULL, *_enable = NULL,  *_level = NULL;
 	int  id_int = 0, level_int = 0;
 
 	_clear_wsct_high_priority_enable();
 
-	snprintf(wsct_high_priority_enable, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(wsct_high_priority_enable, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	wsct_high_priority_enable[n-1]='\0';
 
 	while (cur != NULL) {
@@ -1374,6 +1383,7 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= wsct_busid;
 
 	char *_id = NULL, *_busid = NULL, *_idMask = NULL;
@@ -1381,7 +1391,9 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 
 	_clear_wsct_busid();
 
-	snprintf(wsct_busid, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(wsct_busid, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	wsct_busid[n-1]='\0';
 
 	while (cur != NULL) {
@@ -1466,15 +1478,17 @@ ssize_t wsct_chn_rank_sel_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= wsct_chn_rank_sel;
 	char *_id = NULL, *_chn_rank = NULL;
 	int id_int = 0, chn_rank_int = 0;
 
 	_clear_wsct_chn_rank_sel();
 
-	snprintf(wsct_chn_rank_sel, FILE_NODE_DATA_LEN, "%s", buf);
-	wsct_chn_rank_sel[n-1]='\0';
+	ret = snprintf(wsct_chn_rank_sel, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
 
+	wsct_chn_rank_sel[n-1]='\0';
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -1552,15 +1566,17 @@ void _clear_wsct_burst_range(void) {
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= wsct_burst_range;
 	char *_id = NULL, *_low_bnd = NULL, *_up_bnd = NULL;
 	int id_int = 0, low_bnd_int = 0, up_bnd_int = 0;
 
 	_clear_wsct_burst_range();
 
-	snprintf(wsct_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
-	wsct_burst_range[n-1]='\0';
+	ret = snprintf(wsct_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
 
+	wsct_burst_range[n-1]='\0';
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -1643,13 +1659,16 @@ ssize_t tsct_busid_enable_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= tsct_busid_enable;
 	char *_id = NULL, *_enable = NULL;
 	int  id_int = 0;
 
 	_clear_tsct_busid_enable();
 
-	snprintf(tsct_busid_enable, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(tsct_busid_enable, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	tsct_busid_enable[n-1]='\0';
 
 
@@ -1732,13 +1751,16 @@ ssize_t ttype_high_priority_ext_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= ttype_high_priority_ext;
 	char *_id = NULL, *_enable = NULL,  *_level = NULL;
 	int  id_int = 0, level_int = 0;
 
 	_clear_ttype_high_priority_ext();
 
-	snprintf(ttype_high_priority_ext, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(ttype_high_priority_ext, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	ttype_high_priority_ext[n-1]='\0';
 
 	while (cur != NULL) {
@@ -1830,6 +1852,7 @@ ssize_t ttype_busid_ext_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= ttype_busid_ext;
 
 	char *_id = NULL, *_busid = NULL, *_idMask = NULL;
@@ -1837,7 +1860,9 @@ ssize_t ttype_busid_ext_store(struct kobject *kobj,
 
 	_clear_ttype_busid_ext();
 
-	snprintf(ttype_busid_ext, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(ttype_busid_ext, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	ttype_busid_ext[n-1]='\0';
 
 	while (cur != NULL) {
@@ -1921,13 +1946,16 @@ ssize_t ttype_chn_rank_sel_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= ttype_chn_rank_sel;
 	char *_id = NULL, *_chn_rank = NULL;
 	int id_int = 0, chn_rank_int = 0;
 
 	_clear_ttype_chn_rank_sel();
 
-	snprintf(ttype_chn_rank_sel, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(ttype_chn_rank_sel, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	ttype_chn_rank_sel[n-1]='\0';
 
 	while (cur != NULL) {
@@ -2009,13 +2037,16 @@ ssize_t ttype_burst_range_store(struct kobject *kobj,
 		const char *buf,
 		size_t n)
 {
+	int ret;
 	char *token, *cur= ttype_burst_range;
 	char *_id = NULL, *_low_bnd = NULL, *_up_bnd = NULL;
 	int id_int = 0, low_bnd_int = 0, up_bnd_int = 0;
 
 	_clear_ttype_burst_range();
 
-	snprintf(ttype_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(ttype_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	ttype_burst_range[n-1]='\0';
 
 
@@ -2105,13 +2136,16 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 		size_t n)
 {
 	/* EX: 0:rw,1:r */
+	int ret;
 	char *token, *cur= wmask_msel;
 	char *_id = NULL, *_master_group = NULL;
 	int id_int = 0;
 
 	_clear_wmask_msel();
 
-	snprintf(wmask_msel, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(wmask_msel, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	wmask_msel[n-1]='\0';
 
 
@@ -2191,13 +2225,16 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 		size_t n)
 {
 	/* EX: 0:rw,1:r */
+	int ret;
 	char *token, *cur= ageexp_msel_rw;
 	char *_id = NULL, *_master_group = NULL, *_rw_type = NULL;
 	int id_int = 0;
 
 	_clear_ageexp_msel_rw();
 
-	snprintf(ageexp_msel_rw, FILE_NODE_DATA_LEN, "%s", buf);
+	ret = snprintf(ageexp_msel_rw, FILE_NODE_DATA_LEN, "%s", buf);
+	if (ret < 0) return -EINVAL;
+
 	ageexp_msel_rw[n-1]='\0';
 
 
@@ -2678,6 +2715,7 @@ int emi_create_header(char *buf, int buf_len)
 {
 	int ret = 0;
 	int i = 0;
+	int err;
 
 	unsigned int dram_data_rate_MHz;
 	unsigned int DRAM_TYPE;
@@ -2735,14 +2773,16 @@ int emi_create_header(char *buf, int buf_len)
 			}
 		}
 		/* remove the last comma */
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype busid list */
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_ttype_busid_list: ");
 		for (i = 0; i < 21; i++)
 			ret += snprintf(buf + ret, buf_len - ret, "%x,", ttype_busid_val[i]);
 
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype nbeat list */
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_ttype_nbeat_list: ");
@@ -2753,7 +2793,8 @@ int emi_create_header(char *buf, int buf_len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype nbyte list */
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_ttype_nbyte_list: ");
@@ -2764,7 +2805,8 @@ int emi_create_header(char *buf, int buf_len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype burst list */
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_ttype_burst_list: ");
@@ -2775,8 +2817,8 @@ int emi_create_header(char *buf, int buf_len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
-
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 	}
 	/* ttype enable */
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_ttype_enable: %d,%d\n",ttype1_16_en, ttype17_21_en);
@@ -2802,65 +2844,72 @@ int emi_create_header(char *buf, int buf_len)
 		else    /*disable*/
 			ret += snprintf(buf + ret, buf_len - ret, "NONE,");
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
-
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_wsct_HPRI_DIS: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%d,",WSCT_HPRI_DIS[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_wsct_HPRI_SEL: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",WSCT_HPRI_SEL[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_wsct_busid: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",wsct_busid_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
-
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_wsct_idMask: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",wsct_idMask_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: wsct_chn_rank_sel: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",wsct_chn_rank_sel_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: wsct_byte_bnd_dis: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%d,",wsct_byte_bnd_dis[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
-
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: wsct_byte_low_bnd: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",wsct_byte_low_bnd_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: wsct_byte_up_bnd: ");
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%x,",wsct_byte_up_bnd_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: tsct_busid_enable: ");
 	for (i=0;i<TSCT_AMOUNT;i++) {
 		ret += snprintf(buf + ret, buf_len - ret, "%d,",tsct_busid_enable_val[i]);
 	}
-	snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+	if (err < 0) return err;
 
 	/***************************** ttype ****************************************/
 	if (ttype17_21_en == BM_TTYPE17_21_ENABLE) {
@@ -2869,37 +2918,43 @@ int emi_create_header(char *buf, int buf_len)
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%x,",TTYPE_HPRI_SEL[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ttype_idMask: ");
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%x,",ttype_idMask_val[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ttype_chn_rank_sel: ");
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%x,",ttype_chn_rank_sel_val[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ttype_byte_bnd_dis: ");
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%d,",ttype_byte_bnd_dis[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ttype_byte_low_bnd_val: ");
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%x,",ttype_byte_low_bnd_val[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ttype_byte_up_bnd_val: ");
 		for (i=0;i<BM_COUNTER_MAX;i++) {
 			ret += snprintf(buf + ret, buf_len - ret, "%x,",ttype_byte_up_bnd_val[i]);
 		}
-		snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		err = snprintf(buf + ret -1, buf_len - ret + 1, "\n");
+		if (err < 0) return err;
 	}
 #endif
 
@@ -3181,6 +3236,7 @@ int emi_print_header_basic(char *buf, int len)
 	}
 	else{
 		len = snprintf(buf, PAGE_SIZE, "%s\n", header_str+output_str_len);
+		if (len < 0) return -1;
 
 		/* reset state */
 		emi_device->header_read_again = 0;

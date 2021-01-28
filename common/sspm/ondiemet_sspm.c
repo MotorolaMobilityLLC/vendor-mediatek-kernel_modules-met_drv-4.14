@@ -104,6 +104,7 @@ static ssize_t sspm_ipi_supported_show(struct device *dev, struct device_attribu
 	#endif
 #endif
 	i = snprintf(buf, PAGE_SIZE, "%d\n", ipi_supported);
+	if (i < 0) return -1;
 
 	return i;
 }
