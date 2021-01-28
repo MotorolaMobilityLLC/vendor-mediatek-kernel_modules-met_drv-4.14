@@ -945,7 +945,8 @@ static int emi_print_header(char *buf, int len)
 			"met-info [000] 0.0: DRAM_DVFS_header: datarate(MHz)\n");
 
 	/*PDIR met_dramc_header*/
-	if (dramc_pdir_enable == 1 && DRAMC_VER >= 2 ) {
+#if DRAMC_VER >= 2
+	if (dramc_pdir_enable == 1) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 				"met-info [000] 0.0: met_dramc_header: ");
 		for (i = 0; i < dram_chann_num; i++) {
@@ -962,6 +963,7 @@ static int emi_print_header(char *buf, int len)
 		}
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
 	}
+#endif
 
 	/* DRS header */
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
