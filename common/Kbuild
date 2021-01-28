@@ -140,6 +140,11 @@ ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
     endif
 endif
 
+EMI_LOWEFF_SUPPORT := $(if $(EMI_LOWEFF_SUPPORT),$(EMI_LOWEFF_SUPPORT),n)
+ifeq ($(EMI_LOWEFF_SUPPORT), y)
+    subdir-ccflags-y += -DEMI_LOWEFF_SUPPORT
+endif
+
 ################################################################################
 # MET_GPU
 ################################################################################
@@ -514,6 +519,12 @@ ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
         endif
     endif
 endif
+
+EMI_LOWEFF_SUPPORT := $(if $(EMI_LOWEFF_SUPPORT),$(EMI_LOWEFF_SUPPORT),n)
+ifeq ($(EMI_LOWEFF_SUPPORT), y)
+    subdir-ccflags-y += -DEMI_LOWEFF_SUPPORT
+endif
+
 ################################################################################
 # MET_GPU
 ################################################################################

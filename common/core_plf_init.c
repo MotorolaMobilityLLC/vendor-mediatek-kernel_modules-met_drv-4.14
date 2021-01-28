@@ -88,6 +88,7 @@ int (*vcorefs_get_num_opp_symbol)(void);
 
 #ifdef MET_EMI
 void *(*mt_cen_emi_base_get_symbol)(void);
+void *(*mt_chn_emi_base_get_symbol)(int chn);
 unsigned int (*mtk_dramc_get_data_rate_symbol)(void);
 unsigned int (*mtk_dramc_get_ddr_type_symbol)(void);
 unsigned int (*get_cur_ddr_ratio_symbol)(void);
@@ -182,6 +183,7 @@ static int met_symbol_get(void)
 
 #ifdef MET_EMI
 	_MET_SYMBOL_GET(mt_cen_emi_base_get);
+	_MET_SYMBOL_GET(mt_chn_emi_base_get);
 	_MET_SYMBOL_GET(mtk_dramc_get_data_rate);
 	_MET_SYMBOL_GET(mtk_dramc_get_ddr_type);
 	_MET_SYMBOL_GET(get_cur_ddr_ratio);
@@ -275,6 +277,7 @@ static int met_symbol_put(void)
 
 #ifdef MET_EMI
 	_MET_SYMBOL_PUT(mt_cen_emi_base_get);
+	_MET_SYMBOL_PUT(mt_chn_emi_base_get);
 	_MET_SYMBOL_PUT(mtk_dramc_get_data_rate);
 	_MET_SYMBOL_PUT(mtk_dramc_get_ddr_type);
 	_MET_SYMBOL_PUT(get_cur_ddr_ratio);
