@@ -14,6 +14,7 @@ SPMTWAM_IDLE_SIGNAL_SUPPORT := single
 # Feature On/Off
 ################################################################################
 FEATURE_SSPM_EMI := n
+FEATURE_GPU := n
 
 # ONDIEMET
 FEATURE_ONDIEMET := n
