@@ -54,6 +54,7 @@ static int start;
 static unsigned int online_cpu_map;
 static int curr_polling_cpu;
 static int cpu_related_cnt;
+static int cpu_related_polling_hdlr_cnt;
 
 static int preferred_cpu_list[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
@@ -183,32 +184,9 @@ static enum hrtimer_restart met_hrtimer_notify(struct hrtimer *hrtimer)
 	return HRTIMER_NORESTART;
 }
 
-static void __met_hrtimer_start(void *unused)
+static void __met_init_cpu_related_device(void *unused)
 {
-	struct met_cpu_struct *met_cpu_ptr = NULL;
-	struct hrtimer *hrtimer = NULL;
-	/* struct delayed_work *dw; */
 	struct metdevice *c;
-
-	met_cpu_ptr = this_cpu_ptr(&met_cpu);
-#if	defined(DEBUG_CPU_NOTIFY)
-	{
-		char msg[32];
-
-		snprintf(msg, sizeof(msg), "met_hrtimer status_%d", met_cpu_ptr->cpu);
-		dbg_met_tag_oneshot(0, msg, 1);
-	}
-#endif
-	/*
-	 * do not open HRtimer when EVENT timer enable
-	 */
-	if (!(met_switch.mode & MT_SWITCH_EVENT_TIMER)) {
-		hrtimer = &met_cpu_ptr->hrtimer;
-		/* dw = &met_cpu_ptr->dwork; */
-
-		hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-		hrtimer->function = met_hrtimer_notify;
-	}
 
 	list_for_each_entry(c, &met_list, list) {
 		*(this_cpu_ptr(c->polling_count)) = 0;
@@ -225,10 +203,33 @@ static void __met_hrtimer_start(void *unused)
 				c->ondiemet_start();
 		}
 	}
+}
+
+static void __met_hrtimer_register(void *unused)
+{
+	struct met_cpu_struct *met_cpu_ptr = NULL;
+	struct hrtimer *hrtimer = NULL;
+	/* struct delayed_work *dw; */
+	/*struct metdevice *c;*/
+
+	met_cpu_ptr = this_cpu_ptr(&met_cpu);
+#if	defined(DEBUG_CPU_NOTIFY)
+	{
+		char msg[32];
+
+		snprintf(msg, sizeof(msg), "met_hrtimer status_%d", met_cpu_ptr->cpu);
+		dbg_met_tag_oneshot(0, msg, 1);
+	}
+#endif
 	/*
 	 * do not open HRtimer when EVENT timer enable
 	 */
 	if (!(met_switch.mode & MT_SWITCH_EVENT_TIMER)) {
+
+		hrtimer = &met_cpu_ptr->hrtimer;
+		hrtimer_init(hrtimer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+		hrtimer->function = met_hrtimer_notify;
+
 		if (DEFAULT_HRTIMER_EXPIRE) {
 			met_cpu_ptr->work_enabled = 1;
 			/* schedule_delayed_work_on(smp_processor_id(), dw, DEFAULT_TIMER_EXPIRE); */
@@ -331,11 +332,31 @@ static int met_pmu_cpu_notify(enum met_action action, unsigned int cpu)
 			 * start current cpu hrtimer, and change it to be currr_pollling_cpu
 			 */
 			if ((online_cpu_map & (1 << curr_polling_cpu)) == 0) {
-				met_smp_call_function_single_symbol(cpu, __met_hrtimer_start, NULL, 1);
+				met_smp_call_function_single_symbol(cpu, __met_hrtimer_register, NULL, 1);
 				curr_polling_cpu = cpu;
 			}
-		} else
-			met_smp_call_function_single_symbol(cpu, __met_hrtimer_start, NULL, 1);
+		} else {
+			if (cpu_related_polling_hdlr_cnt) {
+				met_smp_call_function_single_symbol(cpu, __met_init_cpu_related_device, NULL, 1);
+				met_smp_call_function_single_symbol(cpu, __met_hrtimer_register, NULL, 1);
+			} else {
+
+				/*pr_info("%s, %d: curr_polling_cpu is alive = %d\n",
+				 *		__func__, __LINE__, online_cpu_map & (1 << curr_polling_cpu));
+				 */
+
+				online_cpu_map |= (1 << cpu);
+
+				/* check curr_polling_cpu is alive, if it is down,
+				 * start current cpu hrtimer, and change it to be currr_pollling_cpu
+				 */
+				if ((online_cpu_map & (1 << curr_polling_cpu)) == 0) {
+					met_smp_call_function_single_symbol(cpu, __met_init_cpu_related_device, NULL, 1);
+					met_smp_call_function_single_symbol(cpu, __met_hrtimer_register, NULL, 1);
+					curr_polling_cpu = cpu;
+				}
+			}
+		}
 
 #ifdef CONFIG_CPU_FREQ
 		force_power_log(cpu);
@@ -366,11 +387,14 @@ static int met_pmu_cpu_notify(enum met_action action, unsigned int cpu)
 				curr_polling_cpu = preferred_polling_cpu;
 				dbg_met_tag_oneshot(0, "met_curr polling cpu", curr_polling_cpu);
 
-				if (cpu_related_cnt == 0)
+				if (cpu_related_cnt == 0) {
 					/* pr_info("%s, %d: start cpu %d hrtimer start\n",
 					 *		__func__, __LINE__, curr_polling_cpu);
 					 */
-					met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_start, NULL, 1);
+					met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_register, NULL, 1);
+				} else if (cpu_related_polling_hdlr_cnt == 0) {
+					met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_register, NULL, 1);
+				}
 			}
 		}
 
@@ -439,8 +463,20 @@ int sampler_start(void)
 		if (try_module_get(c->owner) == 0)
 			continue;
 
-		if ((c->mode) && (c->cpu_related == 1))
+		if ((c->mode) && (c->cpu_related == 1)) {
 			cpu_related_cnt = 1;
+
+			if (c->ondiemet_mode == 0) {
+				if (c->timed_polling)
+					cpu_related_polling_hdlr_cnt = 1;
+			} else if (c->ondiemet_mode == 1) {
+				if (c->ondiemet_timed_polling)
+					cpu_related_polling_hdlr_cnt = 1;
+			} else if (c->ondiemet_mode == 2) {
+				if (c->timed_polling || c->ondiemet_timed_polling)
+					cpu_related_polling_hdlr_cnt = 1;
+			}
+		}
 
 		if (c->ondiemet_mode == 0) {
 			if ((!(c->cpu_related)) && (c->mode) && (c->start))
@@ -450,6 +486,8 @@ int sampler_start(void)
 		} else if (c->ondiemet_mode == 1) {
 			if ((!(c->cpu_related)) && (c->mode) && (c->ondiemet_start))
 				c->ondiemet_start();
+			if ((c->cpu_related) && (c->mode) && (c->uniq_ondiemet_start))
+				c->uniq_ondiemet_start();
 		} else if (c->ondiemet_mode == 2) {
 			if ((!(c->cpu_related)) && (c->mode) && (c->start))
 				c->start();
@@ -458,6 +496,8 @@ int sampler_start(void)
 
 			if ((!(c->cpu_related)) && (c->mode) && (c->ondiemet_start))
 				c->ondiemet_start();
+			else if ((c->cpu_related) && (c->mode) && (c->uniq_ondiemet_start))
+				c->uniq_ondiemet_start();
 		}
 	}
 
@@ -467,19 +507,27 @@ int sampler_start(void)
 		online_cpu_map |= (1 << cpu);
 	}
 	dbg_met_tag_oneshot(0, "met_online cpu map", online_cpu_map);
-
 	preferred_polling_cpu = calc_preferred_polling_cpu(online_cpu_map);
 	if (preferred_polling_cpu != -1)
 		curr_polling_cpu = preferred_polling_cpu;
 	dbg_met_tag_oneshot(0, "met_curr polling cpu", curr_polling_cpu);
 	start = 1;
 
-	if (cpu_related_cnt == 0)
-		met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_start, NULL, 1);
+	if (cpu_related_cnt == 0) {
+		met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_register, NULL, 1);
+	}
 	else {
 		//on_each_cpu(__met_hrtimer_start, NULL, 1);
 		for_each_online_cpu(cpu) {
-			met_smp_call_function_single_symbol(cpu, __met_hrtimer_start, NULL, 1);
+			met_smp_call_function_single_symbol(cpu, __met_init_cpu_related_device, NULL, 1);
+		}
+
+		if (cpu_related_polling_hdlr_cnt) {
+			for_each_online_cpu(cpu) {
+				met_smp_call_function_single_symbol(cpu, __met_hrtimer_register, NULL, 1);
+			}
+		} else {
+			met_smp_call_function_single_symbol(curr_polling_cpu, __met_hrtimer_register, NULL, 1);
 		}
 	}
 	put_online_cpus();
@@ -527,6 +575,8 @@ void sampler_stop(void)
 		} else if (c->ondiemet_mode == 1) {
 			if ((!(c->cpu_related)) && (c->mode) && (c->ondiemet_stop))
 				c->ondiemet_stop();
+			else if ((c->cpu_related) && (c->mode) && (c->uniq_ondiemet_stop))
+				c->uniq_ondiemet_stop();
 		} else if (c->ondiemet_mode == 2) {
 			if ((!(c->cpu_related)) && (c->mode) && (c->stop))
 				c->stop();
@@ -535,11 +585,14 @@ void sampler_stop(void)
 
 			if ((!(c->cpu_related)) && (c->mode) && (c->ondiemet_stop))
 				c->ondiemet_stop();
+			else if ((c->cpu_related) && (c->mode) && (c->uniq_ondiemet_stop))
+				c->uniq_ondiemet_stop();
 		}
 		module_put(c->owner);
 	}
 
 	cpu_related_cnt = 0;
+	cpu_related_polling_hdlr_cnt = 0;
 }
 
 #if 0 /* cann't use static now */

@@ -19,12 +19,21 @@
 #include <linux/perf/arm_pmu.h>
 #endif
 
+#include <linux/kernel.h>
+#include <linux/mutex.h>
+#include <linux/perf/arm_pmu.h>
+#include <linux/irqreturn.h>
+#include <linux/irq_work.h>
 #include "met_drv.h"
 #include "met_kernel_symbol.h"
 #include "interface.h"
 #include "trace.h"
 #include "cpu_pmu.h"
 #include "mtk_typedefs.h"
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#include "sspm/ondiemet_sspm.h"
+#endif
 
 struct cpu_pmu_hw *cpu_pmu;
 static int counter_cnt[MXNR_CPU];
@@ -39,6 +48,9 @@ DECLARE_KOBJ_ATTR_INT(mtk_pmu_event_enable, mtk_pmu_event_enable);
 	do { \
 		KOBJ_ATTR_ITEM(mtk_pmu_event_enable); \
 	} while (0)
+
+DEFINE_MUTEX(handle_irq_lock);
+irqreturn_t (*handle_irq_orig)(int irq_num, void *dev);
 
 #ifdef CONFIG_CPU_PM
 static int use_cpu_pm_pmu_notifier = 0;
@@ -289,6 +301,30 @@ static void perf_event_release(int cpu, struct perf_event *ev)
 	perf_event_release_kernel(ev);
 }
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#define	PMU_OVERFLOWED_MASK	0xffffffff
+
+static inline int pmu_has_overflowed(u32 pmovsr)
+{
+	return pmovsr & PMU_OVERFLOWED_MASK;
+}
+
+static irqreturn_t perf_event_handle_irq_ignore_overflow(int irq_num, void *dev)
+{
+	u32 pmovsr;
+
+	pmovsr = cpu_pmu->pmu_read_clear_overflow_flag();
+
+	if (!pmu_has_overflowed(pmovsr)) {
+		return IRQ_NONE;
+	}
+	else {
+		irq_work_run();
+		return IRQ_HANDLED;
+	}
+}
+#endif
+
 static int perf_thread_set_perf_events(int cpu)
 {
 	int			i, size;
@@ -306,19 +342,35 @@ static int perf_thread_set_perf_events(int cpu)
 				met_cpupmu.mode = 0;
 				met_perf_cpupmu_status = 0;
 
-				MET_TRACE("[MET_PMU] failed to register pmu event %4x\n", pmu[i].event);
-				pr_notice("[MET_PMU] failed to register pmu event %4x\n", pmu[i].event);
+				MET_TRACE("[MET_PMU] cpu %d failed to register pmu event %4x\n", cpu, pmu[i].event);
+				pr_notice("[MET_PMU] cpu %d failed to register pmu event %4x\n", cpu, pmu[i].event);
 				continue;
 			}
 
-			MET_TRACE("[MET_PMU] registered pmu slot: [%d] evt=%#04x\n", ev->hw.idx, pmu[i].event);
-			pr_debug("[MET_PMU] registered pmu slot: [%d] evt=%#04x\n", ev->hw.idx, pmu[i].event);
+			MET_TRACE("[MET_PMU] cpu %d registered pmu slot: [%d] evt=%#04x\n", cpu, ev->hw.idx, pmu[i].event);
+			pr_debug("[MET_PMU] cpu %d registered pmu slot: [%d] evt=%#04x\n", cpu, ev->hw.idx, pmu[i].event);
 
 			per_cpu(pevent, cpu)[i] = ev;
 			per_cpu(perfPrev, cpu)[i] = 0;
 			per_cpu(perfCurr, cpu)[i] = 0;
 			perf_event_enable(ev);
 			per_cpu(perfCntFirst, cpu)[i] = 1;
+
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+			if (met_cpupmu.ondiemet_mode) {
+				struct arm_pmu *armpmu;
+				armpmu = container_of(ev->pmu, struct arm_pmu, pmu);
+				mutex_lock(&handle_irq_lock);
+				if (armpmu && armpmu->handle_irq != perf_event_handle_irq_ignore_overflow) {
+					pr_debug("[MET_PMU] replaced original handle_irq=%p with dummy function\n",
+						 armpmu->handle_irq);
+					handle_irq_orig = armpmu->handle_irq;
+					armpmu->handle_irq = perf_event_handle_irq_ignore_overflow;
+				}
+				mutex_unlock(&handle_irq_lock);
+			}
+#endif
 		}	/* for all PMU counter */
 		per_cpu(perfSet, cpu) = 1;
 	}	/* for perfSet */
@@ -371,6 +423,21 @@ static void perf_thread_down(struct work_struct *work)
 	for (i = 0; i < event_count; i++) {
 		ev = per_cpu(pevent, cpu)[i];
 		if (ev != NULL) {
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+			if (met_cpupmu.ondiemet_mode) {
+				struct arm_pmu *armpmu;
+				armpmu = container_of(ev->pmu, struct arm_pmu, pmu);
+				mutex_lock(&handle_irq_lock);
+				if (armpmu && armpmu->handle_irq == perf_event_handle_irq_ignore_overflow) {
+					pr_debug("[MET_PMU] restore original handle_irq=%p\n", handle_irq_orig);
+					armpmu->handle_irq = handle_irq_orig;
+					handle_irq_orig = NULL;
+				}
+				mutex_unlock(&handle_irq_lock);
+			}
+#endif
+
 			perf_event_release(cpu, ev);
 			per_cpu(pevent, cpu)[i] = NULL;
 		}
@@ -586,15 +653,15 @@ static int cpupmu_print_header(char *buf, int len)
 
 	/*append CPU PMU access method*/
 	if (met_cpu_pmu_method)
-		ret += snprintf(buf + ret, PAGE_SIZE,
+		ret += snprintf(buf + ret, len,
 			"met-info [000] 0.0: CPU_PMU_method: perf APIs\n");
 	else
-		ret += snprintf(buf + ret, PAGE_SIZE,
+		ret += snprintf(buf + ret, len,
 			"met-info [000] 0.0: CPU_PMU_method: MET pmu driver\n");
 
 	/*append cache line size*/
-	ret += snprintf(buf + ret, PAGE_SIZE - ret, cache_line_header, cache_line_size());
-	ret += snprintf(buf + ret, PAGE_SIZE - ret, "# mp_cpu: pmu_value1, ...\n");
+	ret += snprintf(buf + ret, len - ret, cache_line_header, cache_line_size());
+	ret += snprintf(buf + ret, len - ret, "# mp_cpu: pmu_value1, ...\n");
 
 	for_each_possible_cpu(cpu) {
 		event_count = cpu_pmu->event_count[cpu];
@@ -604,14 +671,14 @@ static int cpupmu_print_header(char *buf, int len)
 			if (pmu[i].mode == 0)
 				continue;
 			if (first) {
-				ret += snprintf(buf + ret, PAGE_SIZE - ret, header, cpu);
+				ret += snprintf(buf + ret, len - ret, header, cpu);
 				first = 0;
 			}
-			ret += snprintf(buf + ret, PAGE_SIZE - ret, ",0x%x", pmu[i].event);
+			ret += snprintf(buf + ret, len - ret, ",0x%x", pmu[i].event);
 			pmu[i].mode = 0;
 		}
 		if (!first)
-			ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
+			ret += snprintf(buf + ret, len - ret, "\n");
 	}
 
 	reset_driver_stat();
@@ -650,6 +717,31 @@ static int met_parse_num_list(char *arg, int len, int *list, int list_cnt)
 	return nr_num;
 }
 
+static const struct perf_pmu_events_attr *
+perf_event_get_evt_attr_by_name(const struct perf_event *ev,
+			       const char *name) {
+	struct arm_pmu *arm_pmu;
+	struct attribute **attrp;
+	struct device_attribute *dev_attr_p;
+	struct perf_pmu_events_attr *ev_attr_p;
+
+	arm_pmu = container_of(ev->pmu, struct arm_pmu, pmu);
+
+	for (attrp = arm_pmu->attr_groups[ARMPMU_ATTR_GROUP_EVENTS]->attrs;
+	     *attrp != NULL;
+	     attrp ++) {
+
+		dev_attr_p = container_of(*attrp, struct device_attribute, attr);
+		ev_attr_p = container_of(dev_attr_p, struct perf_pmu_events_attr, attr);
+
+		if (0 == strcmp((*attrp)->name, name)) {
+			return ev_attr_p;
+		}
+	}
+
+	return NULL;
+}
+
 static int cpupmu_process_argument(const char *arg, int len)
 {
 	char		*arg1 = (char*)arg;
@@ -661,6 +753,8 @@ static int cpupmu_process_argument(const char *arg, int len)
 	struct met_pmu	*pmu;
 	int		arg_nr;
 	int		event_no;
+	int		is_cpu_cycle_evt;
+	const struct perf_pmu_events_attr *ev_attr_p;
 
 	/*
 	 * split cpu_list and event_list by ':'
@@ -723,9 +817,9 @@ static int cpupmu_process_argument(const char *arg, int len)
 
 		for (i = 0; i < nr_events; i++) {
 			event_no = event_list[i];
+			is_cpu_cycle_evt = 0;
 			/*
-			 * check if event is duplicate,
-			 * but may not include 0xff when met_cpu_pmu_method == 0.
+			 * check if event is duplicate, but does not include 0xff
 			 */
 			if (cpu_pmu->check_event(pmu, arg_nr, event_no) < 0)
 				goto arg_out;
@@ -735,21 +829,42 @@ static int cpupmu_process_argument(const char *arg, int len)
 			 */
 			if (met_cpu_pmu_method) {
 				struct perf_event *ev;
+
+				if (!cpu_pmu->perf_event_get_evttype) {
+					MET_TRACE("[MET_PMU] cpu_pmu->perf_event_get_evttype=NULL, "
+						  "met pmu on perf-event was not supported on this platform\n");
+					pr_debug("[MET_PMU] cpu_pmu->perf_event_get_evttype=NULL, "
+						 "met pmu on perf-event was not supported on this platform\n");
+					goto arg_out;
+				}
+
 				ev = perf_event_create(cpu, event_no, arg_nr);
 				if (ev == NULL) {
 					pr_debug("!!!!!!!! [MET_PMU] failed pmu alloction test (event_no=%#04x)\n", event_no);
 				} else {
 					perf_event_release(cpu, ev);
 				}
+
+				ev_attr_p = perf_event_get_evt_attr_by_name(ev, "cpu_cycles");
+				if (ev_attr_p && cpu_pmu->perf_event_get_evttype(ev) == ev_attr_p->id)
+					is_cpu_cycle_evt = 1;
 			}
 
 			if (met_cpu_pmu_method) {
-				if (arg_nr >= nr_counters)
-					goto arg_out;
-				pmu[arg_nr].mode = MODE_POLLING;
-				pmu[arg_nr].event = event_no;
-				pmu[arg_nr].freq = 0;
-				arg_nr++;
+				if (is_cpu_cycle_evt) {
+					if (pmu[nr_counters-1].mode == MODE_POLLING)
+						goto arg_out;
+					pmu[nr_counters-1].mode = MODE_POLLING;
+					pmu[nr_counters-1].event = event_no;
+					pmu[nr_counters-1].freq = 0;
+				} else {
+					if (arg_nr >= (nr_counters - 1))
+						goto arg_out;
+					pmu[arg_nr].mode = MODE_POLLING;
+					pmu[arg_nr].event = event_no;
+					pmu[arg_nr].freq = 0;
+					arg_nr++;
+				}
 			} else {
 				if (event_no == 0xff) {
 					if (pmu[nr_counters-1].mode == MODE_POLLING)
@@ -778,7 +893,6 @@ arg_out:
 	reset_driver_stat();
 	return -EINVAL;
 }
-
 
 static void cpupmu_cpu_state_notify(long cpu, unsigned long action)
 {
@@ -811,6 +925,131 @@ static void cpupmu_cpu_state_notify(long cpu, unsigned long action)
 #endif
 }
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+static void sspm_pmu_start(void)
+{
+	ondiemet_module[ONDIEMET_SSPM] |= ID_PMU;
+
+	if (met_cpupmu.ondiemet_mode == 1)
+		cpupmu_start();
+}
+
+static int cycle_count_mode_enabled(int cpu) {
+
+	int event_cnt;
+	struct met_pmu	*pmu;
+
+	pmu = cpu_pmu->pmu[cpu];
+
+	if (met_cpu_pmu_method) {
+		event_cnt = perf_num_counters();
+	} else {
+		event_cnt = cpu_pmu->event_count[cpu];
+	}
+
+	return pmu[event_cnt-1].mode == MODE_POLLING;
+}
+
+static void ipi_config_pmu_counter_cnt(void) {
+
+	int ret, cpu, ii;
+	unsigned int rdata;
+	unsigned int ipi_buf[4];
+
+	for_each_possible_cpu(cpu) {
+		for (ii = 0; ii < 4; ii++)
+			ipi_buf[ii] = 0;
+
+		ipi_buf[0] = MET_MAIN_ID | (MID_PMU << MID_BIT_SHIFT) | MET_ARGU | SET_PMU_EVT_CNT;
+		/*
+		 *  XXX: on sspm side, cycle counter was not counted in
+		 *       total event number `counter_cnt', but controlled by
+		 *       an addtional argument `SET_PMU_CYCCNT_ENABLE' instead
+		 */
+		ipi_buf[1] = (cpu << 16) |
+		             ((cycle_count_mode_enabled(cpu) ?
+		              (counter_cnt[cpu]-1) : counter_cnt[cpu]) & 0xffff);
+
+		MET_TRACE("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, counter_cnt[cpu]);
+		pr_debug("[MET_PMU][IPI_CONFIG] core=%d, pmu_counter_cnt=%d\n", cpu, counter_cnt[cpu]);
+
+		MET_TRACE("[MET_PMU][IPI_CONFIG] sspm_buf_available=%d, in_interrupt()=%lu\n", sspm_buf_available, in_interrupt());
+		pr_debug("[MET_PMU][IPI_CONFIG] sspm_buf_available=%d, in_interrupt()=%lu\n", sspm_buf_available, in_interrupt());
+
+		if (sspm_buf_available == 1) {
+			ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *) ipi_buf, 0, &rdata, 1);
+		}
+
+		if (cycle_count_mode_enabled(cpu)) {
+
+			for (ii = 0; ii < 4; ii++)
+				ipi_buf[ii] = 0;
+
+			ipi_buf[0] = MET_MAIN_ID | (MID_PMU << MID_BIT_SHIFT) | MET_ARGU | SET_PMU_CYCCNT_ENABLE;
+			ipi_buf[1] = cpu & 0xffff;
+
+			MET_TRACE("[MET_PMU][IPI_CONFIG] core=%d, pmu cycle cnt enable\n", cpu);
+			pr_debug("[MET_PMU][IPI_CONFIG] core=%d, pmu cycle cnt enable\n", cpu);
+
+			if (sspm_buf_available == 1) {
+				ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *) ipi_buf, 0, &rdata, 1);
+			}
+		}
+	}
+}
+
+static void sspm_pmu_unique_start(void) {
+
+	ipi_config_pmu_counter_cnt();
+
+	if (met_cpupmu.ondiemet_mode == 1)
+		cpupmu_unique_start();
+}
+
+static void sspm_pmu_unique_stop(void)
+{
+	if (met_cpupmu.ondiemet_mode == 1)
+		cpupmu_unique_stop();
+	return;
+}
+
+static void sspm_pmu_stop(void)
+{
+	if (met_cpupmu.ondiemet_mode == 1)
+		cpupmu_stop();
+}
+
+static const char sspm_pmu_header[] = "met-info [000] 0.0: pmu_sampler: sspm\n";
+
+static int sspm_pmu_print_header(char *buf, int len)
+{
+	int ret;
+
+	ret = snprintf(buf, len, sspm_pmu_header);
+
+	if (met_cpupmu.ondiemet_mode == 1)
+		ret += cpupmu_print_header(buf + ret, len - ret);
+
+	return ret;
+}
+
+static int sspm_pmu_process_argument(const char *arg, int len)
+{
+	if (met_cpupmu.ondiemet_mode == 1) {
+
+		if (!cpu_pmu->pmu_read_clear_overflow_flag) {
+			MET_TRACE("[MET_PMU] cpu_pmu->pmu_read_clear_overflow_flag=NULL, "
+				  "pmu on sspm was not supported on this platform\n");
+			pr_debug("[MET_PMU] cpu_pmu->pmu_read_clear_overflow_flag=NULL, "
+				 "pmu on sspm was not supported on this platform\n");
+			return -EINVAL;
+		}
+
+		return cpupmu_process_argument(arg, len);
+	}
+	return 0;
+}
+#endif
 
 struct metdevice met_cpupmu = {
 	.name = "cpu",
@@ -827,5 +1066,15 @@ struct metdevice met_cpupmu = {
 	.print_help = cpupmu_print_help,
 	.print_header = cpupmu_print_header,
 	.process_argument = cpupmu_process_argument,
-	.cpu_state_notify = cpupmu_cpu_state_notify
+	.cpu_state_notify = cpupmu_cpu_state_notify,
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+	.ondiemet_mode = 1,
+	.ondiemet_start = sspm_pmu_start,
+	.uniq_ondiemet_start = sspm_pmu_unique_start,
+	.uniq_ondiemet_stop = sspm_pmu_unique_stop,
+	.ondiemet_stop = sspm_pmu_stop,
+	.ondiemet_print_header = sspm_pmu_print_header,
+	.ondiemet_process_argument = sspm_pmu_process_argument
+#endif
 };

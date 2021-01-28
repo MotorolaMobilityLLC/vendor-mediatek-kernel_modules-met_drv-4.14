@@ -164,7 +164,9 @@ struct metdevice {
 	void (*cpu_state_notify)(long cpu, unsigned long action);
 
 	void (*ondiemet_start)(void);
+	void (*uniq_ondiemet_start)(void);
 	void (*ondiemet_stop)(void);
+	void (*uniq_ondiemet_stop)(void);
 	int (*ondiemet_reset)(void);
 	int (*ondiemet_print_help)(char *buf, int len);
 	int (*ondiemet_print_header)(char *buf, int len);

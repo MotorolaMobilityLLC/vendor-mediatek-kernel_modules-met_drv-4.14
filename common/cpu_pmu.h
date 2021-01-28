@@ -15,6 +15,7 @@
 #define _CPU_PMU_H_
 
 #include <linux/device.h>
+#include <linux/perf_event.h>
 
 #define MODE_DISABLED	0
 #define MODE_INTERRUPT	1
@@ -40,6 +41,8 @@ struct cpu_pmu_hw {
 	void (*start)(struct met_pmu *pmu, int count);
 	void (*stop)(int count);
 	unsigned int (*polling)(struct met_pmu *pmu, int count, unsigned int *pmu_value);
+	unsigned long (*perf_event_get_evttype)(struct perf_event *ev);
+	u32 (*pmu_read_clear_overflow_flag)(void);
 	struct met_pmu *pmu[MXNR_CPU];
 	int event_count[MXNR_CPU];
 	/*
@@ -53,6 +56,11 @@ struct pmu_desc {
 	unsigned int event;
 	char name[MXSIZE_PMU_DESC];
 };
+
+typedef enum {
+	SET_PMU_EVT_CNT = 0x0,
+	SET_PMU_CYCCNT_ENABLE = 0x1,
+} PMU_IPI_Type;
 
 struct cpu_pmu_hw *cpu_pmu_hw_init(void);
 

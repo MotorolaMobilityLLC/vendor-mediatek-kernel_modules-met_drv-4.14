@@ -11,6 +11,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/perf_event.h>
 #include <asm/cpu.h>
 #include "met_kernel_symbol.h"
 #include "cpu_pmu.h"
@@ -219,6 +220,29 @@ static unsigned int armv8_pmu_hw_polling(struct met_pmu *pmu, int count, unsigne
 	return cnt;
 }
 
+static unsigned long armv8_perf_event_get_evttype(struct perf_event *ev) {
+
+	struct hw_perf_event *hwc;
+
+	hwc = &ev->hw;
+	return hwc->config_base & ARMV8_PMU_EVTYPE_EVENT;
+}
+
+#define	PMU_OVSR_MASK		0xffffffff     /* Mask for writable bits */
+
+static u32 armv8_pmu_read_clear_overflow_flag(void)
+{
+	u32 value;
+
+	asm volatile ("mrs %0, pmovsclr_el0":"=r" (value));
+
+	/* Write to clear flags */
+	value &= PMU_OVSR_MASK;
+	asm volatile ("msr pmovsclr_el0, %0"::"r" (value));
+
+	return value;
+}
+
 static struct met_pmu	pmus[MXNR_CPU][MXNR_PMU_EVENTS];
 
 struct cpu_pmu_hw armv8_pmu = {
@@ -227,6 +251,8 @@ struct cpu_pmu_hw armv8_pmu = {
 	.start = armv8_pmu_hw_start,
 	.stop = armv8_pmu_hw_stop,
 	.polling = armv8_pmu_hw_polling,
+	.perf_event_get_evttype = armv8_perf_event_get_evttype,
+	.pmu_read_clear_overflow_flag = armv8_pmu_read_clear_overflow_flag,
 };
 
 static void init_pmus(void)

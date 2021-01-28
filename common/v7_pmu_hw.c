@@ -230,6 +230,31 @@ static unsigned int armv7_pmu_hw_polling(struct met_pmu *pmu, int count, unsigne
 	return cnt;
 }
 
+#define ARMV7_PMU_EVTYPE_EVENT 0xff
+
+static unsigned long armv7_perf_event_get_evttype(struct perf_event *ev) {
+
+	struct hw_perf_event *hwc;
+
+	hwc = &ev->hw;
+	return hwc->config_base & ARMV7_PMU_EVTYPE_EVENT;
+}
+
+#define	PMU_OVSR_MASK		0xffffffff     /* Mask for writable bits */
+
+static u32 armv7_pmu_read_clear_overflow_flag(void)
+{
+	u32 value;
+
+	asm volatile ("mrc p3, 3, %0, c9, c12, 3":"=r" (value));
+
+	/* Write to clear flags */
+	value &= PMU_OVSR_MASK;
+	asm volatile ("mcr p3, 3, %0, c9, c12, 3"::"r" (value));
+
+	return value;
+}
+
 static struct met_pmu	pmus[MXNR_CPU][MXNR_PMU_EVENTS];
 
 struct cpu_pmu_hw armv7_pmu = {
@@ -238,6 +263,8 @@ struct cpu_pmu_hw armv7_pmu = {
 	.start = armv7_pmu_hw_start,
 	.stop = armv7_pmu_hw_stop,
 	.polling = armv7_pmu_hw_polling,
+	.perf_event_get_evttype = armv7_perf_event_get_evttype,
+	.pmu_read_clear_overflow_flag = armv7_pmu_read_clear_overflow_flag,
 };
 
 struct cpu_pmu_hw *cpu_pmu_hw_init(void)
