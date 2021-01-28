@@ -137,13 +137,13 @@ extern struct metdevice met_vcoredvfs;
 
 #ifdef MET_EMI
 extern void *mt_cen_emi_base_get(void);
-extern unsigned int get_dram_data_rate(void);      /* in Mhz */
-extern int get_ddr_type(void);
+extern unsigned int mtk_dramc_get_data_rate(void);      /* in Mhz */
+extern int mtk_dramc_get_ddr_type(void);
 extern int get_cur_ddr_ratio(void);
 
 extern void *(*mt_cen_emi_base_get_symbol)(void);
-extern unsigned int (*get_dram_data_rate_symbol)(void); /* in Mhz */
-extern unsigned int (*get_ddr_type_symbol)(void);
+extern unsigned int (*mtk_dramc_get_data_rate_symbol)(void); /* in Mhz */
+extern unsigned int (*mtk_dramc_get_ddr_type_symbol)(void);
 extern unsigned int (*get_cur_ddr_ratio_symbol)(void);
 
 

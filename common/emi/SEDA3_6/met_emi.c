@@ -97,15 +97,15 @@ static unsigned int get_emi_clock_rate(unsigned int dram_data_rate_MHz)
 {
 	unsigned int DRAM_TYPE;
 
-	if (get_ddr_type_symbol) {
-		DRAM_TYPE = get_ddr_type_symbol();
+	if (mtk_dramc_get_ddr_type_symbol) {
+		DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 		if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
 			return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP4 / DRAM_DATARATE;
 		else
 			return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP3 / DRAM_DATARATE;
 	} else {
-		METERROR("[%s][%d]get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
+		METERROR("[%s][%d]mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
 		return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP4 / DRAM_DATARATE;
 	}
 }
@@ -2080,12 +2080,12 @@ static int emi_create_header(char *buf, int buf_len)
 	 *	};
 	 */
 	if (!get_cur_ddr_ratio_symbol){
-		PR_BOOTMSG("[%s][%d]get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 get_cur_ddr_ratio_symbol\n", __func__, __LINE__);
-		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 get_cur_ddr_ratio_symbol\n");
+		PR_BOOTMSG("[%s][%d]get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
+		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 setting\n");
 	}
 
-	if (get_ddr_type_symbol) {
-		DRAM_TYPE = get_ddr_type_symbol();
+	if (mtk_dramc_get_ddr_type_symbol) {
+		DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 		base_clock_rate = MET_EMI_Get_BaseClock_Rate();
 
@@ -2100,8 +2100,8 @@ static int emi_create_header(char *buf, int buf_len)
 					dram_chann_num, base_clock_rate,
 					DRAM_IO_BUS_WIDTH_LP3, DRAM_DATARATE);
 	} else {
-		METERROR("[%s][%d]get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
-		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n");
+		METERROR("[%s][%d]mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
+		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n");
 		
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_dram_chann_num_header: %d,%d,%d,%d\n",
 					dram_chann_num, DDR_RATIO_DEFAULT,
@@ -2111,11 +2111,11 @@ static int emi_create_header(char *buf, int buf_len)
 
 
 	/* met_emi_clockrate */
-	if (get_dram_data_rate_symbol) {
-		dram_data_rate_MHz = get_dram_data_rate_symbol();
+	if (mtk_dramc_get_data_rate_symbol) {
+		dram_data_rate_MHz = mtk_dramc_get_data_rate_symbol();
 	} else {
-		METERROR("get_dram_data_rate_symbol = NULL\n");
-		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: get_dram_data_rate_symbol = NULL\n");
+		METERROR("mtk_dramc_get_data_rate_symbol = NULL\n");
+		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: mtk_dramc_get_data_rate_symbol = NULL\n");
 		dram_data_rate_MHz = DRAM_FREQ_DEFAULT;
 	}
 
@@ -2177,7 +2177,7 @@ static int emi_create_header(char *buf, int buf_len)
 	ret += snprintf(buf + ret, buf_len - ret,	"met-info [000] 0.0: met_bw_rgtor_unit_header: %x\n", MET_EMI_Get_CONH_2ND(0));
 
 	ret += snprintf(buf + ret, buf_len - ret,
-			"met-info [000] 0.0: met_bw_rglr_header: metadata");
+			"met-info [000] 0.0: met_bw_rglr_header: metadata\n");
 
 
 	/* DRAM DVFS header */
