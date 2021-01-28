@@ -279,15 +279,15 @@ static void met_smi_stop(void)
 
 		/* Reset */
 		smi_init_value();
-		
+
 		larb_req_type = SMI_REQ_ALL;
 		comm_req_type = SMI_REQ_ALL;
 		parallel_mode = 0;
-		
+
 		for (j = 0; j < NPORT_IN_PM; j++)
 			comm_pm_rw_type[0][j] = SMI_READ_ONLY;
-		
-		
+
+
 		met_sspm_smi.mode = 0;
 	}
 	return ;
@@ -420,7 +420,7 @@ static int smi_process_argument(const char *__restrict__ arg, int len)
 		smi_conf.rwtype[3],
 		smi_conf.desttype,
 		(smi_conf.reqtype >> MET_SMI_BIT_REQ_LARB) & 0x3,
-		(smi_conf.reqtype >> MET_SMI_BIT_REQ_COMM) & 0x3);	
+		(smi_conf.reqtype >> MET_SMI_BIT_REQ_COMM) & 0x3);
 		met_smi_debug(debug_msg);
 #endif
 
@@ -522,7 +522,7 @@ static int smi_process_argument(const char *__restrict__ arg, int len)
 
 		/* Set mode */
 		met_sspm_smi.mode = 1;
-		ondiemet_module[ONDIEMET_SSPM] |= ID_CPU_INFO_MAPPING;
+		ondiemet_module[ONDIEMET_SSPM] |= ID_SMI;
 	}
 
 	return 0;
@@ -535,10 +535,10 @@ struct metdevice met_sspm_smi = {
 	.create_subfs				= met_smi_create,
 	.delete_subfs				= met_smi_delete,
 	.cpu_related				= 0,
-	.ondiemet_mode 				= 1,	
+	.ondiemet_mode 				= 1,
 	.ondiemet_start				= met_smi_start,
 	.ondiemet_stop				= met_smi_stop,
 	.ondiemet_process_argument 	= smi_process_argument,
-	.ondiemet_print_help		= smi_print_help,	
+	.ondiemet_print_help		= smi_print_help,
 };
 
