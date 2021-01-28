@@ -2238,7 +2238,8 @@ static void MET_BM_IPI_REGISTER_CB(void)
 	int ret, i;
 	unsigned int rdata;
 	unsigned int ipi_buf[4];
-
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	for (i = 0; i < 4; i++)
 		ipi_buf[i] = 0;
 
@@ -2246,6 +2247,8 @@ static void MET_BM_IPI_REGISTER_CB(void)
 		ipi_buf[0] = MET_MAIN_ID | (MID_EMI << MID_BIT_SHIFT) | MET_ARGU | SET_REGISTER_CB;
 		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
+#endif
+#endif
 }
 
 
@@ -2254,7 +2257,8 @@ static void MET_BM_IPI_configs(void)
 	int ret, i;
 	unsigned int rdata;
 	unsigned int ipi_buf[4];
-
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	for (i = 0; i < 4; i++)
 		ipi_buf[i] = 0;
 
@@ -2263,6 +2267,8 @@ static void MET_BM_IPI_configs(void)
 		ipi_buf[2] = EMI_VER_MAJOR << 24 | EMI_VER_MINOR << 16 | DRAMC_VER << 8 | 0;
 		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
+#endif
+#endif
 }
 
 
