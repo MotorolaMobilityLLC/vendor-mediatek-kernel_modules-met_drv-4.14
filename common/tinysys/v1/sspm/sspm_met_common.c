@@ -146,7 +146,7 @@ static int ondiemet_sspm_print_header(char *buf, int len)
 			}
 		}
 		met_sspm_common.mode = 0;
-		for (i = 0 ; i < CUR_MET_RTS_EVENT_NUM / 32; i++) {
+		for (i = 0 ; i < MAX_MET_RTS_EVENT_NUM / 32; i++) {
 			event_id_flag[i] = 0;
 		}
 	}
