@@ -185,6 +185,7 @@ FEATURE_VCOREDVFS := $(if $(FEATURE_VCOREDVFS),$(FEATURE_VCOREDVFS),y)
 $(info FEATURE_VCOREDVFS = $(FEATURE_VCOREDVFS))
 
 ifneq ($(FEATURE_VCOREDVFS), n)
+
     MET_VCOREDVFS := y
 
     # for mtk_vcorefs_manager.h
@@ -205,20 +206,26 @@ ifneq ($(FEATURE_VCOREDVFS), n)
         $(info ======== disable MET_VCOREDVFS ========)
     endif
 
-    # for helio-dvfsrc.h
-    ifneq ("$(wildcard $(srctree)/drivers/devfreq/helio-dvfsrc.h)","")
-        ccflags-y += -I$(srctree)/drivers/devfreq/
-    else
-        MET_VCOREDVFS = n
-        $(info ======== Missing $(srctree)/drivers/devfreq/helio-dvfsrc.h ========)
-        $(info ======== disable MET_VCOREDVFS ========)
+    ifneq ($(VCOREDVFS_OLD_VER),y)
+        # for helio-dvfsrc.h
+        ifneq ("$(wildcard $(srctree)/drivers/devfreq/helio-dvfsrc.h)","")
+            ccflags-y += -I$(srctree)/drivers/devfreq/
+        else
+            MET_VCOREDVFS = n
+            $(info ======== Missing $(srctree)/drivers/devfreq/helio-dvfsrc.h ========)
+            $(info ======== disable MET_VCOREDVFS ========)
+        endif
     endif
 else
     MET_VCOREDVFS := n
 endif
 
-met-$(MET_VCOREDVFS) += $(MET_CORE)/met_vcoredvfs.o
-
+ifneq ($(VCOREDVFS_OLD_VER),y)
+    met-$(MET_VCOREDVFS) += $(MET_CORE)/met_vcoredvfs.o
+else
+    ccflags-y += -DVCOREDVFS_OLD_VER
+    met-$(MET_VCOREDVFS) += $(MET_CORE)/met_vcoredvfs_44.o
+endif
 
 ################################################################################
 # MET_PTPOD

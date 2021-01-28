@@ -56,16 +56,35 @@ bool (*mtk_unregister_gpu_power_change_symbol)(const char *name);
 /*
  *   VCORE DVFS
  */
+#ifdef VCOREDVFS_OLD_VER
+
+#include <mtk_vcorefs_governor.h>
+#include <mtk_spm_vcore_dvfs.h>
+
+u32 (*spm_vcorefs_get_MD_status_symbol)(void);
+void (*spm_vcorefs_register_handler_symbol)(vcorefs_handler_t handler);
+void (*vcorefs_register_req_notify_symbol)(vcorefs_req_handler_t handler);
+char *(*governor_get_kicker_name_symbol)(int id);
+int (*vcorefs_enable_debug_isr_symbol)(bool);
+int (*vcorefs_get_hw_opp_symbol)(void);
+int (*vcorefs_get_curr_vcore_symbol)(void);
+int (*vcorefs_get_curr_ddr_symbol)(void);
+int *kicker_table_symbol;
+#else
+
 #include <helio-dvfsrc.h>
 
-int (*vcorefs_get_num_opp_symbol)(void);
+#endif /* end else VCOREDVFS_OLD_VER*/
 int  (*vcorefs_get_opp_info_num_symbol)(void);
 char ** (*vcorefs_get_opp_info_name_symbol)(void);
 unsigned int * (*vcorefs_get_opp_info_symbol)(void);
 int  (*vcorefs_get_src_req_num_symbol)(void);
 char ** (*vcorefs_get_src_req_name_symbol)(void);
 unsigned int * (*vcorefs_get_src_req_symbol)(void);
+int (*vcorefs_get_num_opp_symbol)(void);
+
 #endif /* MET_VCOREDVFS */
+
 
 #ifdef MET_EMI
 void *(*mt_cen_emi_base_get_symbol)(void);
@@ -146,6 +165,19 @@ static int met_symbol_get(void)
 	_MET_SYMBOL_GET(vcorefs_get_src_req_num);
 	_MET_SYMBOL_GET(vcorefs_get_src_req_name);
 	_MET_SYMBOL_GET(vcorefs_get_src_req);
+
+#ifdef VCOREDVFS_OLD_VER
+	_MET_SYMBOL_GET(spm_vcorefs_get_MD_status);
+	_MET_SYMBOL_GET(spm_vcorefs_register_handler);
+	_MET_SYMBOL_GET(vcorefs_register_req_notify);
+	_MET_SYMBOL_GET(governor_get_kicker_name);
+	_MET_SYMBOL_GET(vcorefs_enable_debug_isr);
+	_MET_SYMBOL_GET(vcorefs_get_hw_opp);
+	_MET_SYMBOL_GET(vcorefs_get_curr_vcore);
+	_MET_SYMBOL_GET(vcorefs_get_curr_ddr);
+	_MET_SYMBOL_GET(kicker_table);
+#endif
+
 #endif
 
 #ifdef MET_EMI
@@ -226,6 +258,19 @@ static int met_symbol_put(void)
 	_MET_SYMBOL_PUT(vcorefs_get_src_req_num);
 	_MET_SYMBOL_PUT(vcorefs_get_src_req_name);
 	_MET_SYMBOL_PUT(vcorefs_get_src_req);
+
+#ifdef VCOREDVFS_OLD_VER
+	_MET_SYMBOL_PUT(spm_vcorefs_get_MD_status);
+	_MET_SYMBOL_PUT(spm_vcorefs_register_handler);
+	_MET_SYMBOL_PUT(vcorefs_register_req_notify);
+	_MET_SYMBOL_PUT(governor_get_kicker_name);
+	_MET_SYMBOL_PUT(vcorefs_enable_debug_isr);
+	_MET_SYMBOL_PUT(vcorefs_get_hw_opp);
+	_MET_SYMBOL_PUT(vcorefs_get_curr_vcore);
+	_MET_SYMBOL_PUT(vcorefs_get_curr_ddr);
+	_MET_SYMBOL_PUT(kicker_table);
+#endif
+
 #endif
 
 #ifdef MET_EMI

@@ -109,7 +109,29 @@ extern int  (*vcorefs_get_src_req_num_symbol)(void);
 extern char ** (*vcorefs_get_src_req_name_symbol)(void);
 extern unsigned int * (*vcorefs_get_src_req_symbol)(void);
 
+
+#ifdef VCOREDVFS_OLD_VER
+
+#include <mtk_spm.h>
+#include <mtk_vcorefs_manager.h>
+
+extern char *governor_get_kicker_name(int id);
+extern int vcorefs_enable_debug_isr(bool);
+
+extern u32 (*spm_vcorefs_get_MD_status_symbol)(void);
+extern void (*spm_vcorefs_register_handler_symbol)(vcorefs_handler_t handler);
+extern void (*vcorefs_register_req_notify_symbol)(vcorefs_req_handler_t handler);
+extern char *(*governor_get_kicker_name_symbol)(int id);
+extern int (*vcorefs_enable_debug_isr_symbol)(bool);
+extern int (*vcorefs_get_hw_opp_symbol)(void);
+extern int (*vcorefs_get_curr_vcore_symbol)(void);
+extern int (*vcorefs_get_curr_ddr_symbol)(void);
+extern int *kicker_table_symbol;
+
+#endif /* VCOREDVFS_OLD_VER */
+
 extern struct metdevice met_vcoredvfs;
+
 #endif /* MET_VCOREDVFS */
 
 
