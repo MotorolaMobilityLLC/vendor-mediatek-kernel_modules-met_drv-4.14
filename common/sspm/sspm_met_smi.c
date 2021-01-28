@@ -518,7 +518,7 @@ static int smi_process_argument(const char *__restrict__ arg, int len)
 		ipi_buf[1] = sspm_master;
 		ipi_buf[2] = sspm_meta;
 		ipi_buf[3] = 0;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 
 		/* Set mode */
 		met_sspm_smi.mode = 1;

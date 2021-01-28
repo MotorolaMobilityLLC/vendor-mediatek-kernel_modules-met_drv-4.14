@@ -977,7 +977,7 @@ static void ipi_config_pmu_counter_cnt(void) {
 		pr_debug("[MET_PMU][IPI_CONFIG] sspm_buf_available=%d, in_interrupt()=%lu\n", sspm_buf_available, in_interrupt());
 
 		if (sspm_buf_available == 1) {
-			ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *) ipi_buf, 0, &rdata, 1);
+			ret = met_ipi_to_sspm_command((void *) ipi_buf, 0, &rdata, 1);
 		}
 
 		if (cycle_count_mode_enabled(cpu)) {
@@ -992,7 +992,7 @@ static void ipi_config_pmu_counter_cnt(void) {
 			pr_debug("[MET_PMU][IPI_CONFIG] core=%d, pmu cycle cnt enable\n", cpu);
 
 			if (sspm_buf_available == 1) {
-				ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *) ipi_buf, 0, &rdata, 1);
+				ret = met_ipi_to_sspm_command((void *) ipi_buf, 0, &rdata, 1);
 			}
 		}
 	}

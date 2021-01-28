@@ -24,6 +24,7 @@ MET_PTPOD_INC := $(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach
 # SPMTWAM_VERSION: ap/sspm
 # SPMTWAM_IDLE_SIGNAL_SUPPORT: single/multiple
 # GPU_STALL_CNT_TYPE := single/multiple
+# SSPM_VERSION: v1/v2
 ################################################################################
 CPUPMU_VERSION := V8_2
 EMI_SEDA_VERSION := SEDA3_5
@@ -37,4 +38,4 @@ SSPM_VERSION := v2
 ################################################################################
 FEATURE_EVENT_POWER := n
 FEATURE_SPMTWAM := n
-FEATURE_ONDIEMET := n
+FEATURE_ONDIEMET := y

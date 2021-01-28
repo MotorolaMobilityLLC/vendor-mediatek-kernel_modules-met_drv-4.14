@@ -16,15 +16,21 @@
 
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
 #include "ondiemet.h"
+
+#ifndef SSPM_VERSION_V2
 #include "sspm_ipi.h"
+#else
+#include <sspm_ipi_id.h>
+#endif /* SSPM_VERSION_V2 */
 #include <linux/dma-mapping.h>
 
 /* we may use IPI_ID_PLATFORM for mt6759 to reduce SRAM */
+#ifndef SSPM_VERSION_V2
 #ifndef IPI_ID_MET
 /* #define IPI_ID_MET IPI_ID_TST1 */
 #define IPI_ID_MET IPI_ID_PLATFORM
 #endif
-
+#endif /* SSPM_VERSION_V2 */
 /* MET IPI command definition: mbox 0 */
 /* main func ID: bit[31-24]; sub func ID: bit[23-18]; argu 0: bit[17-0] */
 #define MET_MAIN_ID_MASK        0xff000000 /* bit 31 - 24 */
@@ -119,6 +125,11 @@ extern void ondiemet_start(void);
 
 extern void start_sspm_ipi_recv_thread(void);
 extern void stop_sspm_ipi_recv_thread(void);
+extern int met_ipi_to_sspm_command(void *buffer, int slot,
+						   unsigned int *retbuf, int retslot);
+extern int met_ipi_to_sspm_command_async(void *buffer, int slot,
+						   unsigned int *retbuf, int retslot);
+
 
 extern unsigned int ondiemet_ipi_buf[];
 

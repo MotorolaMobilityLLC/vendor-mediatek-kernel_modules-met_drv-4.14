@@ -23,6 +23,7 @@ MET_PTPOD_INC := $(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach
 # EMI_SEDA_VERSION: SEDA2/SEDA3/SEDA3_5
 # SPMTWAM_VERSION: ap/sspm
 # SPMTWAM_IDLE_SIGNAL_SUPPORT: single/mutilple
+# SSPM_VERSION: v1/v2
 ################################################################################
 CPUPMU_VERSION := V8_2
 EMI_SEDA_VERSION := SEDA3_5

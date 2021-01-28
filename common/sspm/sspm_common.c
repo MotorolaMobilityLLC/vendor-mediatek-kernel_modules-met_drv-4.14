@@ -190,28 +190,28 @@ static void update_event_id_flag(int event_id)
 		ipi_buf[1] = 0;
 		ipi_buf[2] = event_id_flag0;
 		ipi_buf[3] = 0;
-		res = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		res = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	} else if (event_id >=32 && event_id < 64) {
 		event_id_flag1 |= 1<<(event_id-32);
 		ipi_buf[0] = MET_MAIN_ID | MET_ARGU | MID_COMMON<<MID_BIT_SHIFT | 1;
 		ipi_buf[1] = 1;
 		ipi_buf[2] = event_id_flag1;
 		ipi_buf[3] = 0;
-		res = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		res = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	} else if (event_id >=64 && event_id < 96) {
 		event_id_flag2 |= 1<<(event_id-64);
 		ipi_buf[0] = MET_MAIN_ID | MET_ARGU | MID_COMMON<<MID_BIT_SHIFT | 1;
 		ipi_buf[1] = 2;
 		ipi_buf[2] = event_id_flag2;
 		ipi_buf[3] = 0;
-		res = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		res = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	} else if (event_id >=96 && event_id < 128) {
 		event_id_flag3 = 1<<(event_id-96);
 		ipi_buf[0] |= MET_MAIN_ID | MET_ARGU | MID_COMMON<<MID_BIT_SHIFT | 1;
 		ipi_buf[1] = 3;
 		ipi_buf[2] = event_id_flag3;
 		ipi_buf[3] = 0;
-		res = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		res = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 	met_sspm_common.mode = 1;
 }

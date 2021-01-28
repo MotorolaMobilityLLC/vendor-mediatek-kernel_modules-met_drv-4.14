@@ -2203,7 +2203,7 @@ static void MET_BM_IPI_REGISTER_CB(void)
 
 	if (sspm_buf_available == 1) {
 		ipi_buf[0] = MET_MAIN_ID | (MID_EMI << MID_BIT_SHIFT) | MET_ARGU | SET_REGISTER_CB;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 }
 
@@ -2220,7 +2220,7 @@ static void MET_BM_IPI_configs(void)
 	if (sspm_buf_available == 1) {
 		ipi_buf[0] = MET_MAIN_ID | (MID_EMI << MID_BIT_SHIFT) | MET_ARGU | SET_EBM_CONFIGS1;
 		ipi_buf[2] = EMI_VER_MAJOR << 24 | EMI_VER_MINOR << 16 | DRAMC_VER << 8 | 0;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 }
 

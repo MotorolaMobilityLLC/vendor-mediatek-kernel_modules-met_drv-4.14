@@ -803,3 +803,8 @@ int MET_BM_SetTtype_burst_range(unsigned int *bnd_dis, unsigned int *low_bnd, un
 	}
 	return BM_REQ_OK;
 }
+
+unsigned int MET_EMI_Get_CONH_2ND(void)
+{
+	return readl(IOMEM(ADDR_EMI + EMI_CONH_2ND));
+}

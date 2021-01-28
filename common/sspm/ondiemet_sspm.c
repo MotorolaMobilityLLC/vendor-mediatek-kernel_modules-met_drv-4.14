@@ -18,6 +18,7 @@
 
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
 #include "ondiemet_sspm.h"
+#include "met_kernel_symbol.h"
 
 #if defined(CONFIG_MTK_GMO_RAM_OPTIMIZE) || defined(CONFIG_MTK_MET_MEM_ALLOC)
 #ifdef CONFIG_MET_ARM_32BIT
@@ -49,6 +50,9 @@ int sspm_buf_available;
 EXPORT_SYMBOL(sspm_buf_available);
 int sspm_buf_mapped = -1; /* get buffer by MET itself */
 
+
+static ssize_t sspm_ipi_supported_show(struct device *dev, struct device_attribute *attr, char *buf);
+static DEVICE_ATTR(sspm_ipi_supported, 0444, sspm_ipi_supported_show, NULL);
 static ssize_t sspm_buffer_size_show(struct device *dev, struct device_attribute *attr, char *buf);
 static DEVICE_ATTR(sspm_buffer_size, 0444, sspm_buffer_size_show, NULL);
 
@@ -77,6 +81,27 @@ static DEVICE_ATTR(sspm_modules, 0664, sspm_modules_show, sspm_modules_store);
 
 static ssize_t sspm_op_ctrl_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count);
 static DEVICE_ATTR(sspm_op_ctrl, 0220, NULL, sspm_op_ctrl_store);
+
+
+static ssize_t sspm_ipi_supported_show(struct device *dev, struct device_attribute *attr, char *buf)
+{
+	int ipi_supported;
+	int i;
+
+	ipi_supported = 0;
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+	#ifndef SSPM_VERSION_V2
+	ipi_supported = 1;
+	#else
+	if(sspm_ipidev_symbol)
+		ipi_supported = 1;
+	#endif
+#endif
+	i = snprintf(buf, PAGE_SIZE, "%d\n", ipi_supported);
+
+	return i;
+}
+
 
 static ssize_t sspm_buffer_size_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
@@ -299,6 +324,11 @@ int sspm_attr_init(struct device *dev)
 		pr_debug("can not create device file: sspm_modules\n");
 		return ret;
 	}
+	ret = device_create_file(dev, &dev_attr_sspm_ipi_supported);
+	if (ret != 0) {
+		pr_debug("can not create device file: sspm_ipi_supported\n");
+		return ret;
+	}
 
 	if (ondiemet_sspm_log_virt_addr != NULL) {
 		start_sspm_ipi_recv_thread();
@@ -346,6 +376,7 @@ int sspm_attr_uninit(struct device *dev)
 	device_remove_file(dev, &dev_attr_sspm_run_mode);
 	device_remove_file(dev, &dev_attr_sspm_op_ctrl);
 	device_remove_file(dev, &dev_attr_sspm_modules);
+	device_remove_file(dev, &dev_attr_sspm_ipi_supported);
 
 	return 0;
 }
@@ -400,14 +431,14 @@ void sspm_start(void)
 		ipi_buf[2] = 0;
 
 	ipi_buf[3] = 0;
-	ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+	ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 
 	/* start ondiemet now */
 	ipi_buf[0] = MET_MAIN_ID | MET_OP | MET_OP_START;
 	ipi_buf[1] = ondiemet_module[ONDIEMET_SSPM];
 	ipi_buf[2] = sspm_log_mode;
 	ipi_buf[3] = sspm_run_mode;
-	ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+	ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 }
 
 extern unsigned int met_get_chip_id(void);
@@ -425,7 +456,7 @@ void sspm_stop(void)
 		ipi_buf[1] = chip_id;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 }
 
@@ -446,7 +477,7 @@ void sspm_extract(void)
 		ipi_buf[1] = 0;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 
 	if (sspm_run_mode == SSPM_RUN_NORMAL)
@@ -464,7 +495,7 @@ void sspm_flush(void)
 		ipi_buf[1] = 0;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = sspm_ipi_send_sync(IPI_ID_MET, IPI_OPT_WAIT, (void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 
 	if (sspm_run_mode == SSPM_RUN_NORMAL)

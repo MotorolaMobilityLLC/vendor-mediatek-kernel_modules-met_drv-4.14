@@ -202,7 +202,7 @@ static int met_symbol_get(void)
 		_MET_SYMBOL_GET(spm_twam_set_window_length);
 		_MET_SYMBOL_GET(spm_twam_set_mon_type);
 #endif
-	
+
 		/* sspm side used */
 #ifdef SPMTWAM_SSPM
 		_MET_SYMBOL_GET(spm_twam_enable_monitor);
@@ -295,7 +295,7 @@ static int met_symbol_put(void)
 		_MET_SYMBOL_PUT(spm_twam_set_window_length);
 		_MET_SYMBOL_PUT(spm_twam_set_mon_type);
 #endif
-	
+
 		/* sspm side used */
 #ifdef SPMTWAM_SSPM
 		_MET_SYMBOL_PUT(spm_twam_enable_monitor);

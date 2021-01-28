@@ -56,4 +56,13 @@ extern struct task_struct *met_kthread_create_on_cpu(int (*threadfn)(void *data)
 				const char *namefmt);
 extern int met_smp_call_function_single(int cpu, smp_call_func_t func, void *info, int wait);
 extern void met_arch_send_call_function_single_ipi(int cpu);
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#ifdef SSPM_VERSION_V2
+#include "sspm/ondiemet_sspm.h"
+extern struct mtk_ipi_device sspm_ipidev;
+extern struct mtk_ipi_device *sspm_ipidev_symbol;
+#endif
+#endif
+
 #endif	/* MET_KERNEL_SYMBOL */
