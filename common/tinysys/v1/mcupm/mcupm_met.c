@@ -131,6 +131,7 @@ static int _mcupm_print_help(char *buf, int len)
 static void generate_mcupm_cpu_pmu_header(void)
 {
 	int len = 0;
+	int ret = 0;
 	struct device_node *node = NULL;
 	struct device_node *core_node = NULL;
 	int cluster_num = 0;
@@ -142,8 +143,13 @@ static void generate_mcupm_cpu_pmu_header(void)
 
 	len = snprintf(ptr, MCUPM_CPU_PMU_HEADER_LEN,
 		"met-info [000] 0.0: met_mcupm_dsu_pmu_header: DSU,0x11,0x2A,0x2B\n");
+	if (len < 0)
+		return ;
+
 	len += snprintf(ptr + len, MCUPM_CPU_PMU_HEADER_LEN - len,
 		"met-info [000] 0.0: pmu_sampler: mcupm\n");
+	if (len < 0)
+		return ;
 
 	node = of_find_node_by_name(NULL, "cpu-map");
 	if (!node)
@@ -153,12 +159,16 @@ static void generate_mcupm_cpu_pmu_header(void)
 		cluster_num = of_get_child_count(node);
 		of_node_put(node);
 		for (i = 0; i < cluster_num; i++) {
-			snprintf(cluster_name, sizeof(cluster_name), "cluster%d", i);
+			ret = snprintf(cluster_name, sizeof(cluster_name), "cluster%d", i);
+			if (ret < 0)
+				return ;
 			node = of_find_node_by_name(NULL, cluster_name);
 			if (node) {
 				j = 0;
 				do {
-					snprintf(core_name, sizeof(core_name), "core%d", j);
+					ret = snprintf(core_name, sizeof(core_name), "core%d", j);
+					if (ret < 0)
+						return ;
 					core_node = of_get_child_by_name(node, core_name);
 					if (core_node) {
 						if (i == 0) {
@@ -196,6 +206,9 @@ static int _mcupm_print_header(char *buf, int len)
 	}
 
 	len = snprintf(buf, PAGE_SIZE, "%s", header);
+	if (len < 0)
+		return 0;
+
 	if (ondiemet_module[ONDIEMET_MCUPM] & (0x1 << MID_MCUPM_CPU_PMU)) {
 		len += snprintf(buf + len, PAGE_SIZE - len, "cpu_pmu");
 		cnt++;
@@ -216,6 +229,9 @@ static int _mcupm_print_header(char *buf, int len)
 
 	ondiemet_module[ONDIEMET_MCUPM] = 0;
 	met_mcupm.mode = 0;
+
+	if (len < 0)
+		return 0;
 
 	return len;
 }

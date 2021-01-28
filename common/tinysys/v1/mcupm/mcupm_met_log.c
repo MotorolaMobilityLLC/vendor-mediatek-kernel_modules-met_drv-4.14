@@ -236,13 +236,13 @@ int mcupm_log_init(struct device *dev)
 		get_virt_sym = symbol_get(mcupm_reserve_mem_get_phys);
 		if (get_phys_sym) {
 			mcupm_log_virt_addr = (void*)get_phys_sym(MCUPM_MET_ID);
-			PR_BOOTMSG("mcupm_log_virt_addr=%x\n", mcupm_log_virt_addr);
+			PR_BOOTMSG("mcupm_log_virt_addr=%p\n", mcupm_log_virt_addr);
 		} else {
 			PR_BOOTMSG("symbol_get mcupm_reserve_mem_get_virt failure\n");
 		}
 		if (get_virt_sym) {
 			mcupm_log_phy_addr = get_virt_sym(MCUPM_MET_ID);
-			PR_BOOTMSG("mcupm_log_phy_addr=%x\n", mcupm_log_phy_addr);
+			PR_BOOTMSG("mcupm_log_phy_addr=%p\n", mcupm_log_phy_addr);
 		} else {
 			PR_BOOTMSG("symbol_get mcupm_reserve_mem_get_phys failure\n");
 		}
@@ -308,6 +308,9 @@ int mcupm_log_stop(void)
 	}
 
 	req = kmalloc(sizeof(*req), GFP_ATOMIC);
+	if (req == NULL) {
+		return -EINVAL;
+	}
 	_mcupm_log_req_init(req, MUCPM_LOG_STOP, NULL, 0, _log_stop_cb, NULL);
 
 	init_completion(&log_start_comp);
@@ -328,6 +331,10 @@ int mcupm_log_req_enq(
 	const void *param)
 {
 	struct mcupm_log_req *req = kmalloc(sizeof(*req), GFP_ATOMIC);
+
+	if (req == NULL) {
+		return -EINVAL;
+	}
 
 	_mcupm_log_req_init(req, MUCPM_LOG_REQ, src, num, on_fini_cb, param);
 	return _mcupm_log_req_enq(req);
@@ -560,6 +567,9 @@ static int mcupm_trace_seq_show(struct seq_file *seqf, void *p)
 
 	if (req->num >= seqf->size) {
 		l_req = kmalloc(sizeof(*req), GFP_ATOMIC);
+		if (l_req == NULL) {
+			return -EINVAL;
+		}
 		r_req = req;
 
 		l_sz = seqf->size >> 1;
@@ -637,6 +647,10 @@ static ssize_t mcupm_log_run_show(
 	mutex_lock(&dev->mutex);
 	sz = snprintf(buf, PAGE_SIZE, "%d\n", mcupm_trace_run);
 	mutex_unlock(&dev->mutex);
+
+	if (sz < 0)
+		sz = 0;
+
 	return sz;
 }
 
