@@ -694,6 +694,7 @@ static int emi_print_header(char *buf, int len)
 	int ret = 0;
 /*	int ret_m[21]; */
 	int i = 0;
+	int err;
 	unsigned int dram_data_rate_MHz;
 	unsigned int DRAM_TYPE;
 
@@ -757,14 +758,16 @@ static int emi_print_header(char *buf, int len)
 			}
 		}
 		/* remove the last comma */
-		snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		err = snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype busid list */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_busid_list: ");
 		for (i = 0; i < 21; i++)
 			ret += snprintf(buf + ret, PAGE_SIZE - ret, "%x,", ttype_busid_val[i]);
 
-		snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		err = snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype nbeat list */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_nbeat_list: ");
@@ -775,7 +778,8 @@ static int emi_print_header(char *buf, int len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		err = snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype nbyte list */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_nbyte_list: ");
@@ -786,7 +790,8 @@ static int emi_print_header(char *buf, int len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		err = snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype burst list */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_burst_list: ");
@@ -797,7 +802,8 @@ static int emi_print_header(char *buf, int len)
 				}
 			}
 		}
-		snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		err = snprintf(buf + ret -1, PAGE_SIZE - ret + 1, "\n");
+		if (err < 0) return err;
 
 		/* ttype enable */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_enable: %d,%d\n",ttype1_16_en, ttype17_21_en);

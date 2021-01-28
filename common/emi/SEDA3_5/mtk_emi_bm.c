@@ -3229,7 +3229,8 @@ int emi_print_header_basic(char *buf, int len)
 		output_buf[(PAGE_SIZE/4) - 1] = '\0';
 
 		len = snprintf(buf, PAGE_SIZE, "%s", output_buf);
-		output_str_len += len;
+		if (len > 0)
+			output_str_len += len;
 		emi_device->header_read_again = 1;
 
 		PR_BOOTMSG("EMI header read again!\n");
