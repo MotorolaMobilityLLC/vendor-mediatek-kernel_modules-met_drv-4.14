@@ -42,12 +42,6 @@ met-y := $(MET_CORE)/met_main.o \
     $(MET_CORE)/core_plf_init.o \
     $(MET_CORE)/core_plf_trace.o
 
-ifeq ($(FEATURE_ONDIEMET), y)
-    met-y += $(MET_CORE)/ondiemet.o
-    met-y += $(MET_CORE)/ondiemet_log.o
-    met-y += $(MET_CORE)/sspm/ondiemet_sspm.o
-endif
-
 CFLAGS_interface.o += -DMET_USER_EVENT_SUPPORT
 CFLAGS_met_tag_ex.o += -DMET_USER_EVENT_SUPPORT
 
@@ -369,6 +363,10 @@ ifneq ($(FEATURE_ONDIEMET), n)
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
+
+        met-y += $(MET_CORE)/ondiemet.o
+        met-y += $(MET_CORE)/ondiemet_log.o
+        met-y += $(MET_CORE)/sspm/ondiemet_sspm.o
         met-y += $(MET_CORE)/sspm/sspm_ipi_handle.o
         met-y += $(MET_CORE)/sspm/sspm_common.o
         ccflags-y += -DMTK_TINYSYS_SSPM_SUPPORT
