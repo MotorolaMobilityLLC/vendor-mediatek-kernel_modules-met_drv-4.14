@@ -25,9 +25,12 @@ ccflags-y += -I$(srctree)/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_FAMILY_PLATFORM)/include/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/$(MTK_PLATFORM)/
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/leds/$(MTK_FAMILY_PLATFORM)/
 
 ccflags-y += $(EXTRA_ARGS) $(EXTRA_CFLAGS)
 ccflags-y += -DMTK_PLATFORM=$(MTK_PLATFORM)
@@ -178,11 +181,14 @@ ifneq ($(FEATURE_GPU), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/
     else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_GPU = n
         $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/mtk_gpufreq.h ========)
         $(info ======= Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_GPU ========)
     endif
@@ -276,11 +282,14 @@ ifneq ($(FEATURE_PTPOD), n)
     # for mtk_gpufreq.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/mtk_gpufreq.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/
     else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/
     else
         MET_PTPOD = n
         $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)/mtk_gpufreq.h ========)
+        $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)/mtk_gpufreq.h ========)
         $(info ======== Missing $(srctree)/drivers/misc/mediatek/base/power/include/mtk_gpufreq.h ========)
         $(info ======== disable MET_PTPOD ========)
     endif
@@ -288,9 +297,12 @@ ifneq ($(FEATURE_PTPOD), n)
     # for mtk_cpufreq_api.h
     ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/mtk_cpufreq_api.h)","")
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/
+    else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_FAMILY_PLATFORM)/include/mach/mtk_cpufreq_api.h)","")
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_FAMILY_PLATFORM)/include/
     else
         MET_PTPOD = n
         $(info ======== Missing $(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/mtk_cpufreq_api.h ========)
+        $(info ======== Missing $(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_FAMILY_PLATFORM)/include/mach/mtk_cpufreq_api.h ========)
         $(info ======== disable MET_PTPOD ========)
     endif
 
@@ -375,6 +387,7 @@ ifneq ($(FEATURE_ONDIEMET), n)
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
+        subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)
 
         met-y += $(MET_CORE)/ondiemet.o
         met-y += $(MET_CORE)/ondiemet_log.o
@@ -404,8 +417,14 @@ ifneq ($(FEATURE_ONDIEMET), n)
                     -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
 
             SYS_SSPM_READY := y
+        else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)/$(MET_SSPM_IPI))","")
+            subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm \
+                    -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)
+
+            SYS_SSPM_READY := y
         else
             $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)/$(MET_SSPM_IPI)========)
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)/$(MET_SSPM_IPI)========)
             $(info ======== disable ALL ondiemet feature ========)
 
             SYS_SSPM_READY := n
@@ -489,6 +508,7 @@ ifeq ($(FEATURE_TINYSYS),y)
         met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met_ipi_handle.o
         ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)/mcupm/
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/$(MTK_PLATFORM)
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/$(MTK_FAMILY_PLATFORM)
         ccflags-y += -DTINYSYS_MUCPM_SUPPORT
     endif
 
@@ -506,6 +526,7 @@ ifeq ($(FEATURE_TINYSYS),y)
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/include
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
+        ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)
         ccflags-y += -DTINYSYS_SSPM_SUPPORT
         ccflags-y += -DMTK_TINYSYS_SSPM_SUPPORT
 
@@ -527,8 +548,13 @@ ifeq ($(FEATURE_TINYSYS),y)
             subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
             subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
             TINYSYS_SSPM_READY := y
+        else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)/$(MET_SSPM_IPI))","")
+            subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
+            subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)
+            TINYSYS_SSPM_READY := y
         else
             $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)/$(MET_SSPM_IPI)========)
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)/$(MET_SSPM_IPI)========)
             $(info ======== disable ALL tinysys SSPM feature ========)
             TINYSYS_SSPM_READY := n
         endif
