@@ -54,7 +54,7 @@ static inline void __emi_reg_sync_writel(unsigned int data, void __iomem *padr)
 
 
 void __iomem *BaseAddrEMI;
-void __iomem *BaseAddrCHN_EMI[2];
+void __iomem *BaseAddrCHN_EMI[MET_MAX_DRAM_CH_NUM];
 
 
 #define CH0_MISC_CG_CTRL0 (((unsigned long) BaseAddrDDRPHY_AO[0]) + 0x284)
@@ -532,9 +532,9 @@ unsigned int MET_EMI_GetDramRankNum_CHN1(void)
 
 
 #ifdef EMI_LOWEFF_SUPPORT
-int MET_EMI_Get_LOWEFF_CTL0(int channel){
+int MET_EMI_Get_LOWEFF_CTL0(unsigned int channel){
 
-	if ( (channel<0) || (channel>=MET_MAX_DRAM_CH_NUM))
+	if ( channel >= dram_chann_num )
 		return 0;
 
 	if (BaseAddrCHN_EMI[channel]) {
@@ -544,7 +544,7 @@ int MET_EMI_Get_LOWEFF_CTL0(int channel){
 	}
 }
 
-int MET_BM_SetLOWEFF_master_rw(unsigned chan, unsigned int *wmask_msel , unsigned int *ageexp_msel, unsigned int *ageexp_rw)
+int MET_BM_SetLOWEFF_master_rw(unsigned int chan, unsigned int *wmask_msel , unsigned int *ageexp_msel, unsigned int *ageexp_rw)
 {
 	unsigned int value;
 
@@ -555,7 +555,7 @@ int MET_BM_SetLOWEFF_master_rw(unsigned chan, unsigned int *wmask_msel , unsigne
 	const unsigned int Mask_rw = 0x3;
 	const unsigned int offset_rw = 3;
 
-	if ( (chan < 0) || (chan >= MET_MAX_DRAM_CH_NUM))
+	if (chan >= dram_chann_num)
 		return -1;
 
 	if (BaseAddrCHN_EMI[chan]) {
