@@ -139,6 +139,7 @@ enum ARM_TYPE {
 	CORTEX_A73 = 0xD09,
 	CORTEX_A75 = 0xD0A,
 	CORTEX_A76 = 0xD0B,
+	CORTEX_A77 = 0xD0D,
 	CHIP_UNKNOWN = 0xFFF
 };
 
@@ -156,6 +157,7 @@ static struct chip_pmu	chips[] = {
 	{CORTEX_A73, 6+1},
 	{CORTEX_A75, 6+1},
 	{CORTEX_A76, 6+1},
+	{CORTEX_A77, 6+1},
 };
 
 static int armv8_pmu_hw_check_event(struct met_pmu *pmu, int idx, int event)
