@@ -825,8 +825,12 @@ static int emi_print_header(char *buf, int len)
 	 *	TYPE_LPDDR2
 	 *	};
 	 */
-	if (mtk_dramc_get_ddr_type_symbol) {
+	if (mtk_dramc_get_ddr_type_symbol)
 		DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
+	else if (get_ddr_type_symbol)
+		DRAM_TYPE = get_ddr_type_symbol();
+
+	if (mtk_dramc_get_ddr_type_symbol || get_ddr_type_symbol) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_dram_type: %d\n", DRAM_TYPE);
 
 		if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
@@ -842,9 +846,11 @@ static int emi_print_header(char *buf, int len)
 
 
 	/* met_emi_clockrate */
-	if (mtk_dramc_get_data_rate_symbol) {
+	if (mtk_dramc_get_data_rate_symbol)
 		dram_data_rate_MHz = mtk_dramc_get_data_rate_symbol();
-	} else {
+	else if (get_dram_data_rate_symbol)
+		dram_data_rate_MHz = get_dram_data_rate_symbol();
+	else {
 		METERROR("mtk_dramc_get_data_rate_symbol = NULL\n");
 		dram_data_rate_MHz = 0;
 	}

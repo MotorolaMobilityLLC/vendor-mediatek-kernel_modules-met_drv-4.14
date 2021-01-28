@@ -92,6 +92,9 @@ void *(*mt_chn_emi_base_get_symbol)(int chn);
 unsigned int (*mtk_dramc_get_data_rate_symbol)(void);
 unsigned int (*mtk_dramc_get_ddr_type_symbol)(void);
 unsigned int (*get_cur_ddr_ratio_symbol)(void);
+/* legacy emi api before mt6885 */
+unsigned int (*get_dram_data_rate_symbol)(void);
+int (*get_ddr_type_symbol)(void);
 #endif /* MET_EMI */
 
 #ifdef MET_PTPOD
@@ -187,6 +190,9 @@ static int met_symbol_get(void)
 	_MET_SYMBOL_GET(mtk_dramc_get_data_rate);
 	_MET_SYMBOL_GET(mtk_dramc_get_ddr_type);
 	_MET_SYMBOL_GET(get_cur_ddr_ratio);
+	/* legacy emi api before mt6885 */
+	_MET_SYMBOL_GET(get_dram_data_rate);
+	_MET_SYMBOL_GET(get_ddr_type);
 #endif
 
 #ifdef MET_PTPOD
@@ -281,6 +287,9 @@ static int met_symbol_put(void)
 	_MET_SYMBOL_PUT(mtk_dramc_get_data_rate);
 	_MET_SYMBOL_PUT(mtk_dramc_get_ddr_type);
 	_MET_SYMBOL_PUT(get_cur_ddr_ratio);
+	/* legacy emi api before mt6885 */
+	_MET_SYMBOL_PUT(get_dram_data_rate);
+	_MET_SYMBOL_PUT(get_ddr_type);
 #endif
 
 #ifdef MET_PTPOD

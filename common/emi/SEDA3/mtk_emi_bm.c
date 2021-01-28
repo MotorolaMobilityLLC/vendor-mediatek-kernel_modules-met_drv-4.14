@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0 
+// SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (C) 2019 MediaTek Inc.
  *
@@ -315,10 +315,12 @@ unsigned int MET_EMI_Get_BaseClock_Rate(void)
 	if (get_cur_ddr_ratio_symbol)
 		return get_cur_ddr_ratio_symbol();
 	else {
-
-		if (mtk_dramc_get_ddr_type_symbol) {
+		if (mtk_dramc_get_ddr_type_symbol)
 			DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
+		else if (get_ddr_type_symbol)
+			DRAM_TYPE = get_ddr_type_symbol();
 
+		if (mtk_dramc_get_ddr_type_symbol || get_ddr_type_symbol) {
 			if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
 				return DRAM_EMI_BASECLOCK_RATE_LP4;
 			else

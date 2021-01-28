@@ -141,12 +141,17 @@ extern void *mt_chn_emi_base_get(void);
 extern unsigned int mtk_dramc_get_data_rate(void);      /* in Mhz */
 extern unsigned int mtk_dramc_get_ddr_type(void);
 extern int get_cur_ddr_ratio(void);
+/* legacy emi api before mt6885 */
+extern unsigned int get_dram_data_rate(void);      /* in Mhz */
+extern int get_ddr_type(void);
 
 extern void *(*mt_cen_emi_base_get_symbol)(void);
 extern unsigned int (*mtk_dramc_get_data_rate_symbol)(void); /* in Mhz */
 extern unsigned int (*mtk_dramc_get_ddr_type_symbol)(void);
 extern unsigned int (*get_cur_ddr_ratio_symbol)(void);
-
+/* legacy emi api before mt6885 */
+extern unsigned int (*get_dram_data_rate_symbol)(void); /* in Mhz */
+extern int (*get_ddr_type_symbol)(void);
 
 
 extern struct metdevice met_sspm_emi;

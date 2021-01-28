@@ -196,7 +196,7 @@ int MET_BM_Init(void)
 	if (!mt_chn_emi_base_get_symbol) {
 		for(i=0; i<dram_chann_num; i++) {
 			BaseAddrCHN_EMI[i] = mt_chn_emi_base_get_symbol(i);
-			
+
 			if (BaseAddrCHN_EMI[i] == 0) {
 				METERROR("BaseAddrCHN_EMI[%d] = 0\n", i);
 				PR_BOOTMSG_ONCE("BaseAddrCHN_EMI[%d] = 0\n", i);
@@ -637,7 +637,7 @@ int MET_BM_SetWSCT_high_priority(unsigned int *disable, unsigned int *select)
 int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 {
 	unsigned int value, addr;
-	unsigned int enable_tmp, busid_tmp, idmask_tmp; 
+	unsigned int enable_tmp, busid_tmp, idmask_tmp;
 	int i;
 
 	const unsigned int Mask_busid = 0xFFFF;
@@ -664,7 +664,7 @@ int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 			idmask_tmp = *(idMask+i) & Mask_idMask;
 		}
 
-		
+
 		addr = EMI_DBWA + i*4;
 		value = emi_readl(IOMEM(ADDR_EMI + addr));
 
@@ -985,7 +985,7 @@ unsigned int ageexp_msel_val[MET_MAX_DRAM_CH_NUM];
 unsigned int ageexp_rw_val[MET_MAX_DRAM_CH_NUM];
 char ageexp_msel_rw[FILE_NODE_DATA_LEN] = {'\0'};
 
-                                  
+
 int reserve_wsct_setting;
 
 
@@ -995,7 +995,7 @@ unsigned int output_header_len;
 unsigned int output_str_len;
 
 int emi_use_ondiemet = 0;
-int emi_inited; 
+int emi_inited;
 
 
 char default_val[FILE_NODE_DATA_LEN] = {'\0'};
@@ -1023,7 +1023,7 @@ ssize_t default_val_store(struct kobject *kobj,
 
 	snprintf(default_val, FILE_NODE_DATA_LEN, "%s", buf);
 	default_val[n-1]='\0';
-	
+
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -1106,7 +1106,7 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 
 	snprintf(msel_group_ext, FILE_NODE_DATA_LEN, "%s", buf);
 	msel_group_ext[n-1]='\0';
-	
+
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -1143,7 +1143,7 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("input data [%s]\n",msel_group_ext);
 	/*PR_BOOTMSG("msel_group_ext_store size para n[%d]\n",n);*/
 	int i;
@@ -1151,7 +1151,7 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		PR_BOOTMSG("id[%d]=%X\n",i,msel_group_ext_val[i]);
 	}
-#endif	
+#endif
 	return n;
 }
 
@@ -1286,7 +1286,7 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 
 	snprintf(wsct_high_priority_enable, FILE_NODE_DATA_LEN, "%s", buf);
 	wsct_high_priority_enable[n-1]='\0';
-	
+
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
 		/*PR_BOOTMSG("token: %s\n",token);*/
@@ -1324,7 +1324,7 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 					_clear_wsct_high_priority_enable();
 					return -EINVAL;
 				}
-				WSCT_HPRI_SEL[id_int] = level_int & 0xF;				
+				WSCT_HPRI_SEL[id_int] = level_int & 0xF;
 			} else {
 				PR_BOOTMSG("_id[%s] has err enable[%s] (enable/disable)\n", _id, _enable);
 				_clear_wsct_high_priority_enable();
@@ -1337,7 +1337,7 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("input data [%s]\n",wsct_high_priority_enable);
 	int i;
 	PR_BOOTMSG("wsct_high_priority_enable save data\n");
@@ -1383,7 +1383,7 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 
 	snprintf(wsct_busid, FILE_NODE_DATA_LEN, "%s", buf);
 	wsct_busid[n-1]='\0';
-	
+
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
 		/*PR_BOOTMSG("token: %s\n",token);*/
@@ -1401,7 +1401,7 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 
-		
+
 		if (kstrtouint(_id, 0, &id_int) != 0) {
 			PR_BOOTMSG("_id[%s] trans to hex err\n",_id);
 			_clear_wsct_busid();
@@ -1429,7 +1429,7 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("input data [%s]\n",wsct_busid);
 	int i;
 	PR_BOOTMSG("wsct_busid save data\n");
@@ -1492,7 +1492,7 @@ ssize_t wsct_chn_rank_sel_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 
-		
+
 		if (kstrtouint(_id, 0, &id_int) != 0) {
 			PR_BOOTMSG("_id[%s] trans to hex err\n",_id);
 			_clear_wsct_chn_rank_sel();
@@ -1514,7 +1514,7 @@ ssize_t wsct_chn_rank_sel_store(struct kobject *kobj,
 		}
 	}
 
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("wsct_chn_rank_sel input data [%s]\n",wsct_chn_rank_sel);
 	int i;
 	PR_BOOTMSG("wsct_chn_rank_sel_val save data\n");
@@ -1557,7 +1557,7 @@ void _clear_wsct_burst_range(void) {
 	int id_int = 0, low_bnd_int = 0, up_bnd_int = 0;
 
 	_clear_wsct_burst_range();
-	
+
 	snprintf(wsct_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
 	wsct_burst_range[n-1]='\0';
 
@@ -1623,7 +1623,7 @@ ssize_t wsct_burst_range_show(struct kobject *kobj, struct kobj_attribute *attr,
 	int i;
 
 	for (i=0;i<WSCT_AMOUNT;i++) {
-		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%d:%X:%X\n", 
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%d:%X:%X\n",
 						i, wsct_byte_bnd_dis[i],wsct_byte_low_bnd_val[i], wsct_byte_up_bnd_val[i]);
 	}
 	return strlen(buf);
@@ -1694,7 +1694,7 @@ ssize_t tsct_busid_enable_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("tsct_busid_enable input data [%s]\n",tsct_busid_enable);
 	int i;
 	PR_BOOTMSG("wsct_high_priority_enable save data\n");
@@ -1778,7 +1778,7 @@ ssize_t ttype_high_priority_ext_store(struct kobject *kobj,
 					_clear_ttype_high_priority_ext();
 					return -EINVAL;
 				}
-				TTYPE_HPRI_SEL[id_int] = level_int & 0xF;				
+				TTYPE_HPRI_SEL[id_int] = level_int & 0xF;
 			} else {
 				PR_BOOTMSG("ttype_high_priority_ext: _id[%s] has err enable[%s] (enable/disable)\n", _id, _enable);
 				_clear_ttype_high_priority_ext();
@@ -1804,7 +1804,7 @@ ssize_t ttype_high_priority_ext_store(struct kobject *kobj,
 }
 
 ssize_t ttype_high_priority_ext_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-{	
+{
 	ssize_t ret = 0;
 	int i;
 
@@ -1856,7 +1856,7 @@ ssize_t ttype_busid_ext_store(struct kobject *kobj,
 			_clear_ttype_busid_ext();
 			return -EINVAL;
 		}
-	
+
 		if (kstrtouint(_id, 0, &id_int) != 0) {
 			PR_BOOTMSG("_id[%s] trans to hex err\n",_id);
 			_clear_ttype_busid_ext();
@@ -1946,7 +1946,7 @@ ssize_t ttype_chn_rank_sel_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 
-		
+
 		if (kstrtouint(_id, 0, &id_int) != 0) {
 			PR_BOOTMSG("_id[%s] trans to hex err\n",_id);
 			_clear_ttype_chn_rank_sel();
@@ -2014,7 +2014,7 @@ ssize_t ttype_burst_range_store(struct kobject *kobj,
 	int id_int = 0, low_bnd_int = 0, up_bnd_int = 0;
 
 	_clear_ttype_burst_range();
-	
+
 	snprintf(ttype_burst_range, FILE_NODE_DATA_LEN, "%s", buf);
 	ttype_burst_range[n-1]='\0';
 
@@ -2113,7 +2113,7 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 
 	snprintf(wmask_msel, FILE_NODE_DATA_LEN, "%s", buf);
 	wmask_msel[n-1]='\0';
-	
+
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -2150,7 +2150,7 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("input data [%s]\n",wmask_msel);
 	/*PR_BOOTMSG("msel_group_ext_store size para n[%d]\n",n);*/
 	int i;
@@ -2158,7 +2158,7 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 	for (i=0;i<MET_MAX_DRAM_CH_NUM;i++) {
 		PR_BOOTMSG("id[%d]=%X\n",i,wmask_msel_val[i]);
 	}
-#endif	
+#endif
 	return n;
 }
 
@@ -2199,7 +2199,7 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 
 	snprintf(ageexp_msel_rw, FILE_NODE_DATA_LEN, "%s", buf);
 	ageexp_msel_rw[n-1]='\0';
-	
+
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
@@ -2251,7 +2251,7 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 			return -EINVAL;
 		}
 	}
-#ifdef FILE_NODE_DBG	
+#ifdef FILE_NODE_DBG
 	PR_BOOTMSG("input data [%s]\n",ageexp_msel_rw);
 	/*PR_BOOTMSG("msel_group_ext_store size para n[%d]\n",n);*/
 	int i;
@@ -2259,7 +2259,7 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 	for (i=0;i<MET_MAX_DRAM_CH_NUM;i++) {
 		PR_BOOTMSG("id[%d]=%X:%X\n",i, ageexp_msel_val[i], ageexp_rw_val[i]);
 	}
-#endif	
+#endif
 	return n;
 }
 
@@ -2415,7 +2415,7 @@ void emi_init(void)
 						 ttype_burst_val[i - 1]);
 		}
 	}
-	
+
 	if (ttype17_21_en == BM_TTYPE17_21_ENABLE) {
 		for (i = 17; i <= 21; i++) {
 			MET_BM_SetMonitorCounter(i,
@@ -2441,7 +2441,7 @@ void emi_init(void)
 
 		/* wsct 4 : total-ultra*/
 		msel_group_ext_val[4] = BM_MASTER_ALL;
-		wsct_rw_val[4] = BM_WSCT_RW_RWBOTH;		
+		wsct_rw_val[4] = BM_WSCT_RW_RWBOTH;
 		WSCT_HPRI_DIS[4] = 0;
 		WSCT_HPRI_SEL[4] = 0x8;  /* ultra */
 		wsct_busid_val[4] = 0xFFFFF;
@@ -2599,12 +2599,16 @@ enum DRAM_TYPE {
 ??TYPE_LPDDR4,
 ??TYPE_LPDDR4X,
 ??TYPE_LPDDR4P
-}; 
+};
 */
 	unsigned int dram_type;
 
-	if (mtk_dramc_get_ddr_type_symbol) {	
+	if (mtk_dramc_get_ddr_type_symbol)
 		dram_type = mtk_dramc_get_ddr_type_symbol();
+	else if (get_ddr_type_symbol)
+		dram_type = get_ddr_type_symbol();
+
+	if (mtk_dramc_get_ddr_type_symbol || get_ddr_type_symbol) {
 		if (dram_type == 0)
 			dram_type = met_emi_default_val[e_MET_DRAM_TYPE];
 	} else {
@@ -2623,7 +2627,7 @@ unsigned int MET_EMI_Get_BaseClock_Rate(void)
 		return get_cur_ddr_ratio_symbol();
 	else {
 
-		if (mtk_dramc_get_ddr_type_symbol) {	
+		if (mtk_dramc_get_ddr_type_symbol) {
 			DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 			if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
@@ -2645,7 +2649,7 @@ unsigned int MET_EMI_Get_BaseClock_Rate(void)
 			ddr_ratio = met_emi_default_val[e_MET_DDR_RATIO];
 	} else {
 		ddr_ratio = met_emi_default_val[e_MET_DDR_RATIO];
-	} 
+	}
 	return ddr_ratio;
 #endif
 }
@@ -2654,8 +2658,12 @@ unsigned met_get_dram_data_rate(void)
 {
 	unsigned int dram_data_rate_MHz = 0;
 
-	if (mtk_dramc_get_data_rate_symbol) {
+	if (mtk_dramc_get_data_rate_symbol)
 		dram_data_rate_MHz = mtk_dramc_get_data_rate_symbol();
+	else if (get_dram_data_rate_symbol)
+		dram_data_rate_MHz = get_dram_data_rate_symbol();
+
+	if (mtk_dramc_get_data_rate_symbol || get_dram_data_rate_symbol) {
 		if (dram_data_rate_MHz == 0)
 			dram_data_rate_MHz = met_emi_default_val[e_MET_DRAM_FREQ];
 	} else {
@@ -2685,7 +2693,7 @@ int emi_create_header(char *buf, int buf_len)
 		msel_group_ext_val[1] & BM_MASTER_ALL,
 		msel_group_ext_val[2] & BM_MASTER_ALL,
 		msel_group_ext_val[3] & BM_MASTER_ALL);
-	
+
 	/*Ttype RW type header*/
 	PR_BOOTMSG("rwtype=%d\n",rwtype);
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_emi_rw_cfg: ");
@@ -2930,7 +2938,7 @@ int emi_create_header(char *buf, int buf_len)
 		PR_BOOTMSG("[%s][%d]get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 setting\n");
 	}
-	
+
 #if 1
 	DRAM_TYPE = MET_GET_DRAM_TYPE();
 	base_clock_rate = MET_EMI_Get_BaseClock_Rate();
@@ -2965,7 +2973,7 @@ int emi_create_header(char *buf, int buf_len)
 
 		METERROR("[%s][%d]mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n", __func__, __LINE__);
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: ##_EMI_warning: mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR4 setting\n");
-		
+
 		ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: met_dram_chann_num_header: %d,%d,%d,%d\n",
 					dram_chann_num, DDR_RATIO_DEFAULT,
 					DRAM_IO_BUS_WIDTH_LP4, DRAM_DATARATE);
@@ -3154,7 +3162,7 @@ void met_emi_resume_basic(void)
 	if (!do_emi())
 		return;
 
-	emi_init();	
+	emi_init();
 }
 
 int emi_print_header_basic(char *buf, int len)
@@ -3188,7 +3196,7 @@ void ondiemet_emi_start_basic(void)
 {
 	int ret;
 
-	emi_use_ondiemet = 1; 
+	emi_use_ondiemet = 1;
 
 	MET_BM_IPI_REGISTER_CB();
 	if (!emi_inited) {
