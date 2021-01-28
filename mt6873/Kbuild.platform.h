@@ -28,8 +28,8 @@ MET_PTPOD_INC := $(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach
 ################################################################################
 CPUPMU_VERSION := V8_2
 EMI_SEDA_VERSION := SEDA3_5
-SPMTWAM_VERSION := sspm
-SPMTWAM_IDLE_SIGNAL_SUPPORT := multiple
+SPMTWAM_VERSION := none
+SPMTWAM_IDLE_SIGNAL_SUPPORT := none
 GPU_STALL_CNT_TYPE := single
 SSPM_VERSION := v2
 DYNAMIC_ALLOC_ODM_BUF_SIZE := 0x800000
