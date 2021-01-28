@@ -24,7 +24,15 @@
 #include "sampler.h"
 #include "util.h"
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT)
 #include "ondiemet.h"
+#elif defined(TINYSYS_SSPM_SUPPORT)
+#include "tinysys_mgr.h"
+#include "sspm_met_log.h"
+#endif
+#endif
+
 
 #include "met_drv.h"
 #include "met_tag.h"
@@ -225,7 +233,12 @@ static int met_run(void)
 #ifdef MET_USER_EVENT_SUPPORT
 	bltab.flag &= (~MET_CLASS_ALL);
 #endif
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	ondiemet_start();
+#endif
+#endif
+
 	return 0;
 }
 
@@ -236,10 +249,14 @@ static void met_stop(void)
 #endif
 	sampler_stop();
 	/* the met.ko will be use by script "cat ...", release it */
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	if ((ondiemet_module[ONDIEMET_SSPM] == 0) || (sspm_buffer_size == -1))
 		ondiemet_log_manager_stop();
 	ondiemet_stop();
 	ondiemet_extract();
+#endif
+#endif
 }
 
 static ssize_t ver_show(struct device *dev, struct device_attribute *attr, char *buf)
@@ -714,6 +731,8 @@ static ssize_t mode_store(struct kobject *kobj, struct kobj_attribute *attr, con
 
 static struct kobj_attribute mode_attr = __ATTR(mode, 0664, mode_show, mode_store);
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 static ssize_t ondiemet_mode_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	struct metdevice *c = NULL;
@@ -747,6 +766,8 @@ static ssize_t ondiemet_mode_store(struct kobject *kobj, struct kobj_attribute *
 }
 
 static struct kobj_attribute ondiemet_mode_attr = __ATTR(ondiemet_mode, 0664, ondiemet_mode_show, ondiemet_mode_store);
+#endif
+#endif
 
 static ssize_t polling_interval_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
@@ -1014,10 +1035,13 @@ int met_register(struct metdevice *met)
 	if (ret)
 		goto err_out;
 
-
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	ret = sysfs_create_file(met->kobj, &ondiemet_mode_attr.attr);
 	if (ret)
 		goto err_out;
+#endif
+#endif
 
 	ret = sysfs_create_file(met->kobj, &polling_interval_attr.attr);
 	if (ret)
@@ -1095,7 +1119,11 @@ int met_deregister(struct metdevice *met)
 	sysfs_remove_file(met->kobj, &header_read_again_attr.attr);
 	sysfs_remove_file(met->kobj, &polling_interval_attr.attr);
 	sysfs_remove_file(met->kobj, &mode_attr.attr);
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	sysfs_remove_file(met->kobj, &ondiemet_mode_attr.attr);
+#endif
+#endif
 
 	if (met->delete_subfs)
 		met->delete_subfs();
@@ -1388,6 +1416,11 @@ int fs_reg(int met_minor)
 #endif
 
 	met_register(&met_dummy_header);
+#ifdef FEATURE_CPU_EB_NUM
+#if FEATURE_CPU_EB_NUM
+	met_register(&met_cpu_eb);
+#endif
+#endif
 
 	met_register(&met_backlight);
 	met_ext_api.enable_met_backlight_tag = enable_met_backlight_tag_real;
@@ -1399,8 +1432,12 @@ int fs_reg(int met_minor)
 
 	met_register(&met_stat);
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	ondiemet_log_manager_init(met_device.this_device);
 	ondiemet_attr_init(met_device.this_device);
+#endif
+#endif
 
 	return 0;
 }
@@ -1416,6 +1453,12 @@ void fs_unreg(void)
 
 #ifdef MET_USER_EVENT_SUPPORT
 	tag_unreg();
+#endif
+
+#ifdef FEATURE_CPU_EB_NUM
+#if FEATURE_CPU_EB_NUM
+	met_deregister(&met_cpu_eb);
+#endif
 #endif
 
 	met_deregister(&met_dummy_header);
@@ -1468,8 +1511,12 @@ void fs_unreg(void)
 	device_remove_file(met_device.this_device, &dev_attr_hash);
 	device_remove_file(met_device.this_device, &dev_attr_ipi_test);
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	ondiemet_log_manager_uninit(met_device.this_device);
 	ondiemet_attr_uninit(met_device.this_device);
+#endif
+#endif
 
 	misc_deregister(&met_device);
 #ifdef MET_SUSPEND_HAND

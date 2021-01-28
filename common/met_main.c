@@ -34,6 +34,13 @@
 #include "interface.h"
 #include <linux/of.h>
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
+#if defined(SSPM_VERSION_V2)
+#include "sspm_ipi_id.h"  /* for sspm_ipidev */
+#endif
+#endif
+#endif
 
 extern struct device_node *of_root;
 static const char *platform_name;
@@ -79,9 +86,11 @@ struct task_struct *(*met_kthread_create_on_cpu_symbol)(int (*threadfn)(void *da
 				const char *namefmt);
 int (*met_smp_call_function_single_symbol)(int cpu, smp_call_func_t func, void *info, int wait);
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
-#ifdef SSPM_VERSION_V2
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
+#if defined(SSPM_VERSION_V2)
 struct mtk_ipi_device *sspm_ipidev_symbol = NULL;
+#endif
 #endif
 #endif
 
@@ -297,13 +306,14 @@ static int met_kernel_symbol_get(void)
 		ret = -12;
 #endif
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
-#ifdef SSPM_VERSION_V2
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
+#if defined(SSPM_VERSION_V2)
 	if (sspm_ipidev_symbol == NULL)
 		sspm_ipidev_symbol = symbol_get(sspm_ipidev);
 #endif
 #endif
-
+#endif
 	return ret;
 }
 

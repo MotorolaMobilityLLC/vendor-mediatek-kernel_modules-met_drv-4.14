@@ -21,8 +21,13 @@
 #include "interface.h"
 #include "met_dramc.h"
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT)
 #include "sspm/ondiemet_sspm.h"
+#elif defined(TINYSYS_SSPM_SUPPORT)
+#include "tinysys_sspm.h"
+#include "tinysys_mgr.h" /* for ondiemet_module */
+#endif
 #endif
 
 #define MAX_HEADER_LEN (1024 * 6)
@@ -395,7 +400,8 @@ DECLARE_KOBJ_TTYPE_BUSID_VAL(21);
 static unsigned int get_sspm_support_feature(void)
 {
 	unsigned int rdata=0;
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	int ret, i;
 	unsigned int ipi_buf[4];
 
@@ -406,6 +412,7 @@ static unsigned int get_sspm_support_feature(void)
 		ipi_buf[0] = MET_MAIN_ID | (MID_EMI << MID_BIT_SHIFT) | MET_REQ_AP2MD ;
 		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
+#endif
 #endif
 	return rdata;
 }
@@ -1608,7 +1615,7 @@ static void emi_init(void)
 		WSCT_HPRI_DIS[0] = 1;
 		WSCT_HPRI_SEL[0] = 0xF;
 		wsct_busid_val[0] = 0xFFFFF;
-		wsct_idMask_val[0] = 0x1FFF;
+		wsct_idMask_val[0] = 0xFFFF;
 		wsct_chn_rank_sel_val[0] = 0xF;
 		wsct_byte_bnd_dis[0] = 1;
 
@@ -1618,7 +1625,7 @@ static void emi_init(void)
 		WSCT_HPRI_DIS[4] = 0;
 		WSCT_HPRI_SEL[4] = 0x8;  /* ultra */
 		wsct_busid_val[4] = 0xFFFFF;
-		wsct_idMask_val[4] = 0x1FFF;
+		wsct_idMask_val[4] = 0xFFFF;
 		wsct_chn_rank_sel_val[4] = 0xF;
 		wsct_byte_bnd_dis[4] = 1;
 
@@ -1628,7 +1635,7 @@ static void emi_init(void)
 		WSCT_HPRI_DIS[5] = 0;
 		WSCT_HPRI_SEL[5] = 0x4; /* pre_ultra */
 		wsct_busid_val[5] = 0xFFFFF;
-		wsct_idMask_val[5] = 0x1FFF;
+		wsct_idMask_val[5] = 0xFFFF;
 		wsct_chn_rank_sel_val[5] = 0xF;
 		wsct_byte_bnd_dis[5] = 1;
 	}
@@ -2298,11 +2305,13 @@ struct metdevice met_sspm_emi = {
 	.create_subfs		= met_emi_create,
 	.delete_subfs		= met_emi_delete,
 	.resume			= met_emi_resume,
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	.ondiemet_start		= ondiemet_emi_start,
 	.ondiemet_stop		= ondiemet_emi_stop,
 	.ondiemet_print_help	= emi_print_help,
 	.ondiemet_print_header	= ondiemet_emi_print_header,
+#endif
 #endif
 	.ondiemet_mode		= 1,
 };

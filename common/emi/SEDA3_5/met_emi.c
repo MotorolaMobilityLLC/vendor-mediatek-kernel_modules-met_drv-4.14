@@ -78,11 +78,14 @@ struct metdevice met_sspm_emi = {
 	.create_subfs		= met_emi_create,
 	.delete_subfs		= met_emi_delete,
 	.resume			= met_emi_resume,
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+	.print_header		= emi_print_header,
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	.ondiemet_start		= ondiemet_emi_start,
 	.ondiemet_stop		= ondiemet_emi_stop,
 	.ondiemet_print_help	= emi_print_help,
 	.ondiemet_print_header	= ondiemet_emi_print_header,
+#endif
 #endif
 	.ondiemet_mode		= 1,
 };

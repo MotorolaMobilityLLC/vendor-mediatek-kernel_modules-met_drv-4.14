@@ -144,6 +144,11 @@ const unsigned int emi_config[] = {
 #define EMI_CONFIG_MX_NR (sizeof(emi_config)/sizeof(unsigned int))
 static unsigned int emi_config_val[EMI_CONFIG_MX_NR];
 
+const unsigned int emi_chn_config[] = {
+	CHN_EMI_LOWEFF_CTL0
+};
+#define EMI_CHN_CONFIG_MX_NR (sizeof(emi_chn_config)/sizeof(unsigned int))
+static unsigned int emi_chn_config_val[MET_MAX_DRAM_CH_NUM][EMI_CHN_CONFIG_MX_NR];
 
 enum MET_EMI_DEFAULT_VAL_LIST{
 	e_MET_DRAM_FREQ = 0,
@@ -224,18 +229,48 @@ void MET_BM_DeInit(void)
 
 void MET_BM_SaveCfg(void)
 {
-	int i;
+	int i,j;
 
+	/* emi central */
 	for (i = 0; i < EMI_CONFIG_MX_NR; i++)
 		emi_config_val[i] = emi_readl(IOMEM(ADDR_EMI + emi_config[i]));
+
+	/* emi channel */
+#if 0
+	for (j = 0; j < dram_chann_num; j++) {
+		for (i = 0; i < EMI_CHN_CONFIG_MX_NR; i++) {
+			// emi_reg_sync_writel(emi_chn_config_val[j][i], BaseAddrCHN_EMI[j] + emi_chn_config[i]);
+			emi_chn_config_val[j][i] = emi_readl(IOMEM(BaseAddrCHN_EMI[j] + emi_chn_config[i]));
+		}
+	}
+#else
+	/*only ch0 have CHN_EMI_LOWEFF_CTL0 now*/
+	for (i = 0; i < EMI_CHN_CONFIG_MX_NR; i++) {
+		emi_chn_config_val[0][i] = emi_readl(IOMEM(BaseAddrCHN_EMI[0] + emi_chn_config[i]));
+	}
+#endif
 }
 
 void MET_BM_RestoreCfg(void)
 {
-	int i;
+	int i,j;
 
+	/* emi central */
 	for (i = 0; i < EMI_CONFIG_MX_NR; i++)
 		emi_reg_sync_writel(emi_config_val[i], ADDR_EMI + emi_config[i]);
+
+	/* emi channel */
+#if 0
+	for (j = 0; j < dram_chann_num; j++) {
+		for (i = 0; i < EMI_CHN_CONFIG_MX_NR; i++) {
+			emi_reg_sync_writel(emi_chn_config_val[j][i], BaseAddrCHN_EMI[j] + emi_chn_config[i]);
+		}
+	}
+#else
+	for (i = 0; i < EMI_CHN_CONFIG_MX_NR; i++) {
+		emi_reg_sync_writel(emi_chn_config_val[0][i], BaseAddrCHN_EMI[0] + emi_chn_config[i]);
+	}
+#endif
 }
 
 void MET_BM_SetReadWriteType(const unsigned int ReadWriteType)
@@ -595,20 +630,20 @@ int MET_BM_SetWSCT_high_priority(unsigned int *disable, unsigned int *select)
 
 /* busid enbale: EMI_DBWX[3],    X=A~F */
 /* busid sel: EMI_DBWX[28:16],    X=A~F  (SEL_ID_TMP) */
-/* busid mask : EMI_DBWY[12:0]  或 EMI_DBWY[28:16],  Y=I~K    (SEL_ID_MSK) */
+/* busid mask : EMI_DBWY[12:0]  ??EMI_DBWY[28:16],  Y=I~K    (SEL_ID_MSK) */
 int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 {
 	unsigned int value, addr;
 	unsigned int enable_tmp, busid_tmp, idmask_tmp; 
 	int i;
 
-	const unsigned int Mask_busid = 0x1FFF;
+	const unsigned int Mask_busid = 0xFFFF;
 	const unsigned int offset_busid  = 16;
 
 	const unsigned int Mask_enable = 0x1;
 	const unsigned int offset_enable  = 3;
 
-	const unsigned int Mask_idMask = 0x1FFF;
+	const unsigned int Mask_idMask = 0xFFFF;
 	const unsigned int offset_idMask_even  = 0;
 	const unsigned int offset_idMask_odd  = 16;
 
@@ -617,8 +652,8 @@ int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 		/*enable, SEL_ID_TMP*/
 		if (*(busid+i)>0xffff) {
 			enable_tmp = 0;
-			busid_tmp = 0x1FFF;
-			idmask_tmp = 0x1FFF;
+			busid_tmp = 0xFFFF;
+			idmask_tmp = 0xFFFF;
 		}
 		else {
 			enable_tmp = 1;
@@ -757,21 +792,21 @@ int MET_BM_SetTtype_busid_idmask(unsigned int *busid, unsigned int *idMask, int 
 	int i;
 	unsigned int value, addr;
 
-	const unsigned int Mask_idMask = 0x1FFF;
+	const unsigned int Mask_idMask = 0xFFFF;
 	const unsigned int offset_idMask = 0;
 
 	if (_ttype1_16_en != BM_TTYPE1_16_ENABLE) {
 		/* mask set 0x1FFF , busid set disable*/
 		for (i = 1; i <= 16; i++) {
 			*(busid + i - 1) = 0xfffff;
-			*(idMask + i - 1) = 0x1FFF;
+			*(idMask + i - 1) = 0xFFFF;
 		}
 	}
 
 	if (_ttype17_21_en != BM_TTYPE17_21_ENABLE) {
 		for (i = 17; i <= 21; i++) {
 			*(busid + i - 1) = 0xfffff;
-			*(idMask + i - 1) = 0x1FFF;
+			*(idMask + i - 1) = 0xFFFF;
 		}
 	}
 
@@ -989,7 +1024,7 @@ ssize_t default_val_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:0xff , (ID,master_group)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1028,22 +1063,21 @@ ssize_t default_val_store(struct kobject *kobj,
 ssize_t default_val_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
 	int i;
-	int n = 0;
+	int ret = 0;
 
-	for (i=0;i<NR_MET_DEFAULT_VAL;i++)
+	for (i=0; i<NR_MET_DEFAULT_VAL; i++)
 	{
-		n+=snprintf(buf, PAGE_SIZE, "%d:%d \n", i,met_emi_default_val[i]);
+		ret += snprintf(buf + ret, PAGE_SIZE - ret, "%d:%d \n", i, met_emi_default_val[i]);
 	}
-	return n;
+	return strlen(buf);
 }
 
 void _clear_msel_group_ext(void) {
 	int i;
 
-	for (i=0;i<WSCT_AMOUNT;i++) {
+	for (i=0; i<WSCT_AMOUNT; i++) {
 		msel_group_ext_val[i] = BM_MASTER_ALL;
 	}
-	
 	/*WSCT 4~5 default is ultra, pre-ultra total*/
 	msel_group_ext[0] = '\0';
 }
@@ -1073,7 +1107,7 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:0xff , (ID,master_group)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1120,7 +1154,13 @@ ssize_t msel_group_ext_store(struct kobject *kobj,
 
 ssize_t msel_group_ext_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", msel_group_ext);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X\n", i, msel_group_ext_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_wsct_rw(void) {
@@ -1148,7 +1188,7 @@ ssize_t wsct_rw_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);/*
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1203,7 +1243,13 @@ ssize_t wsct_rw_store(struct kobject *kobj,
 
 ssize_t wsct_rw_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wsct_rw);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X\n", i, wsct_rw_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_wsct_high_priority_enable(void) {
@@ -1240,7 +1286,7 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 	
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1301,7 +1347,13 @@ ssize_t wsct_high_priority_enable_store(struct kobject *kobj,
 
 ssize_t wsct_high_priority_enable_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wsct_high_priority_enable);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X:%X\n", i, WSCT_HPRI_DIS[i], WSCT_HPRI_SEL[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_wsct_busid(void) {
@@ -1309,7 +1361,7 @@ void _clear_wsct_busid(void) {
 
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		wsct_busid_val[i] = 0xfffff;
-		wsct_idMask_val[i] = 0x1FFF;
+		wsct_idMask_val[i] = 0xFFFF;
 	}
 	wsct_busid[0] = '\0';
 }
@@ -1331,7 +1383,7 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 	
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1387,7 +1439,13 @@ ssize_t wsct_busid_store(struct kobject *kobj,
 
 ssize_t wsct_busid_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wsct_busid);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X:%X\n", i, wsct_busid_val[i], wsct_idMask_val[i]);
+	}
+	return strlen(buf);
 }
 
 
@@ -1417,7 +1475,7 @@ ssize_t wsct_chn_rank_sel_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:f , 5:C (ID,chn_rnk_sel)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1466,7 +1524,13 @@ ssize_t wsct_chn_rank_sel_store(struct kobject *kobj,
 
 ssize_t wsct_chn_rank_sel_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wsct_chn_rank_sel);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X\n", i, wsct_chn_rank_sel_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_wsct_burst_range(void) {
@@ -1497,7 +1561,7 @@ void _clear_wsct_burst_range(void) {
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:f , 5:C (ID,chn_rnk_sel)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1552,7 +1616,14 @@ void _clear_wsct_burst_range(void) {
 
 ssize_t wsct_burst_range_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wsct_burst_range);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<WSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%d:%X:%X\n", 
+						i, wsct_byte_bnd_dis[i],wsct_byte_low_bnd_val[i], wsct_byte_up_bnd_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_tsct_busid_enable(void) {
@@ -1581,7 +1652,7 @@ ssize_t tsct_busid_enable_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1633,7 +1704,13 @@ ssize_t tsct_busid_enable_store(struct kobject *kobj,
 
 ssize_t tsct_busid_enable_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", tsct_busid_enable);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<TSCT_AMOUNT;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"%d:%X\n", i, tsct_busid_enable_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_ttype_high_priority_ext(void) {
@@ -1663,7 +1740,7 @@ ssize_t ttype_high_priority_ext_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1724,8 +1801,14 @@ ssize_t ttype_high_priority_ext_store(struct kobject *kobj,
 }
 
 ssize_t ttype_high_priority_ext_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
-{
-	return snprintf(buf, PAGE_SIZE, "%s\n", ttype_high_priority_ext);
+{	
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<BM_COUNTER_MAX;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"id[%d]=(%X,%X)\n", i+1, high_priority_filter>>i & 0x1, TTYPE_HPRI_SEL[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_ttype_busid_ext(void) {
@@ -1733,7 +1816,7 @@ void _clear_ttype_busid_ext(void) {
 
 	for (i=0;i<BM_COUNTER_MAX;i++) {
 		ttype_busid_val[i] = 0xfffff;
-		ttype_idMask_val[i] = 0x1FFF;	
+		ttype_idMask_val[i] = 0xFFFF;
 	}
 	ttype_busid_ext[0] = '\0';
 }
@@ -1756,7 +1839,7 @@ ssize_t ttype_busid_ext_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:R , 5:W (ID,RW)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1812,7 +1895,13 @@ ssize_t ttype_busid_ext_store(struct kobject *kobj,
 
 ssize_t ttype_busid_ext_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", ttype_busid_ext);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<BM_COUNTER_MAX;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"id[%d](busid,idMask)=(%X,%X)\n", i+1, ttype_busid_val[i], ttype_idMask_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_ttype_chn_rank_sel(void) {
@@ -1840,7 +1929,7 @@ ssize_t ttype_chn_rank_sel_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:f , 5:C (ID,chn_rnk_sel)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1892,7 +1981,13 @@ ssize_t ttype_chn_rank_sel_store(struct kobject *kobj,
 
 ssize_t ttype_chn_rank_sel_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", ttype_chn_rank_sel);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<BM_COUNTER_MAX;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"id[%d]=%X\n",i+1,ttype_chn_rank_sel[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_ttype_burst_range(void) {
@@ -1923,7 +2018,7 @@ ssize_t ttype_burst_range_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:f , 5:C (ID,chn_rnk_sel)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -1981,7 +2076,14 @@ ssize_t ttype_burst_range_store(struct kobject *kobj,
 
 ssize_t ttype_burst_range_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", ttype_burst_range);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;i<BM_COUNTER_MAX;i++) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,"id[%d](low_bnd,up_bnd)=(%X,%X)\n",
+								i+1, ttype_byte_low_bnd_val[i], ttype_byte_up_bnd_val[i]);
+	}
+	return strlen(buf);
 }
 
 void _clear_wmask_msel(void)
@@ -2012,7 +2114,7 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:0xff , (ID,master_group)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -2059,7 +2161,14 @@ ssize_t wmask_msel_store(struct kobject *kobj,
 
 ssize_t wmask_msel_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", wmask_msel);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;  i<dram_chann_num && i< MET_MAX_DRAM_CH_NUM; i++) {
+		ret += snprintf( buf + ret, PAGE_SIZE-ret, "%d:%d \n",i ,wmask_msel_val[i]);
+	}
+
+	return strlen(buf);
 }
 
 void _clear_ageexp_msel_rw(void)
@@ -2091,7 +2200,7 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 
 	while (cur != NULL) {
 		token = strsep(&cur, delim_comma);
-		PR_BOOTMSG("token: %s\n",token);
+		/*PR_BOOTMSG("token: %s\n",token);*/
 		/*token EX: 4:0xff , (ID,master_group)*/
 
 		_id = strsep(&token, delim_coclon); // ID
@@ -2153,9 +2262,24 @@ ssize_t ageexp_msel_rw_store(struct kobject *kobj,
 
 ssize_t ageexp_msel_rw_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
 {
-	return snprintf(buf, PAGE_SIZE, "%s\n", ageexp_msel_rw);
+	ssize_t ret = 0;
+	int i;
+
+	for (i=0;  i<dram_chann_num && i< MET_MAX_DRAM_CH_NUM; i++) {
+		ret += snprintf( buf + ret, PAGE_SIZE-ret, "%d:%d:%d \n",i ,ageexp_msel_val[i], ageexp_rw_val[i]);
+	}
+
+	return strlen(buf);
 }
 
+
+/* KOBJ: emi_clock_rate */
+ssize_t sspm_support_feature_show(struct kobject *kobj,
+				struct kobj_attribute *attr,
+				char *buf)
+{
+	return snprintf(buf, PAGE_SIZE, "0x%x\n", get_sspm_support_feature());
+}
 
 
 void _clear_setting(void) {
@@ -2256,6 +2380,7 @@ struct kobj_attribute ttype_burst_range_attr = __ATTR(ttype_burst_range, 0664, t
 struct kobj_attribute wmask_msel_attr = __ATTR(wmask_msel, 0664, wmask_msel_show, wmask_msel_store);
 struct kobj_attribute ageexp_msel_rw_attr = __ATTR(ageexp_msel_rw, 0664, ageexp_msel_rw_show, ageexp_msel_rw_store);
 struct kobj_attribute default_val_attr = __ATTR(default_val, 0664, default_val_show, default_val_store); //OK
+DECLARE_KOBJ_ATTR_RO(sspm_support_feature);
 
 void emi_init(void)
 {
@@ -2307,7 +2432,7 @@ void emi_init(void)
 		WSCT_HPRI_DIS[0] = 1;
 		WSCT_HPRI_SEL[0] = 0xF;
 		wsct_busid_val[0] = 0xFFFFF;
-		wsct_idMask_val[0] = 0x1FFF;
+		wsct_idMask_val[0] = 0xFFFF;
 		wsct_chn_rank_sel_val[0] = 0xF;
 		wsct_byte_bnd_dis[0] = 1;
 
@@ -2317,7 +2442,7 @@ void emi_init(void)
 		WSCT_HPRI_DIS[4] = 0;
 		WSCT_HPRI_SEL[4] = 0x8;  /* ultra */
 		wsct_busid_val[4] = 0xFFFFF;
-		wsct_idMask_val[4] = 0x1FFF;
+		wsct_idMask_val[4] = 0xFFFF;
 		wsct_chn_rank_sel_val[4] = 0xF;
 		wsct_byte_bnd_dis[4] = 1;
 
@@ -2327,7 +2452,7 @@ void emi_init(void)
 		WSCT_HPRI_DIS[5] = 0;
 		WSCT_HPRI_SEL[5] = 0x4; /* pre_ultra */
 		wsct_busid_val[5] = 0xFFFFF;
-		wsct_idMask_val[5] = 0x1FFF;
+		wsct_idMask_val[5] = 0xFFFF;
 		wsct_chn_rank_sel_val[5] = 0xF;
 		wsct_byte_bnd_dis[5] = 1;
 	}
@@ -2362,9 +2487,12 @@ void emi_init(void)
 	MET_BM_SetTtype_burst_range(ttype_byte_bnd_dis, ttype_byte_low_bnd_val, ttype_byte_up_bnd_val);
 
 #ifdef EMI_LOWEFF_SUPPORT
-	for (i=0; i<dram_chann_num && i<< MET_MAX_DRAM_CH_NUM; i++) {
+	/*
+	for (i=0; i<dram_chann_num && i< MET_MAX_DRAM_CH_NUM; i++) {
 		MET_BM_SetLOWEFF_master_rw(i, wmask_msel_val, ageexp_msel_val, ageexp_rw_val);
 	}
+	*/
+	MET_BM_SetLOWEFF_master_rw(0, wmask_msel_val, ageexp_msel_val, ageexp_rw_val);
 #endif
 
 	bmrw0_val = 0;
@@ -2385,6 +2513,8 @@ void emi_uninit(void)
 	MET_BM_RestoreCfg();
 }
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 void MET_BM_IPI_REGISTER_CB(void)
 {
 	int ret, i;
@@ -2416,13 +2546,15 @@ void MET_BM_IPI_configs(void)
 		ret = met_ipi_to_sspm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 }
-
+#endif
+#endif
 
 unsigned int get_sspm_support_feature(void)
 {
 	unsigned int rdata=0;
-#ifdef MARGAUX
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	int ret, i;
 	unsigned int ipi_buf[4];
 
@@ -2457,13 +2589,13 @@ unsigned int MET_GET_DRAM_TYPE()
 {
 /*
 enum DRAM_TYPE {
-  TYPE_DDR1 = 1,
-  TYPE_LPDDR2,
-  TYPE_LPDDR3,
-  TYPE_PCDDR3,
-  TYPE_LPDDR4,
-  TYPE_LPDDR4X,
-  TYPE_LPDDR4P
+??TYPE_DDR1 = 1,
+??TYPE_LPDDR2,
+??TYPE_LPDDR3,
+??TYPE_PCDDR3,
+??TYPE_LPDDR4,
+??TYPE_LPDDR4X,
+??TYPE_LPDDR4P
 }; 
 */
 	unsigned int dram_type;
@@ -2837,7 +2969,10 @@ int emi_create_header(char *buf, int buf_len)
 	}
 #endif
 
-#if 1 
+	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: metemi_func_opt_header: %d\n",
+		metemi_func_opt);
+
+#if 1
 	/* met_emi_clockrate */
 	dram_data_rate_MHz = met_get_dram_data_rate();
 
@@ -2936,11 +3071,10 @@ int emi_create_header(char *buf, int buf_len)
 	ret += snprintf(buf + ret, buf_len - ret,
 			"met-info [000] 0.0: emi_drs_header: ch0_RANK1_GP(%%),ch0_RANK1_SF(%%),ch0_ALL_SF(%%),ch1_RANK1_GP(%%),ch1_RANK1_SF(%%),ch1_ALL_SF(%%)\n");
 #endif
-	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: metemi_func_opt_header: %d\n",
-		metemi_func_opt);
 
 #ifdef EMI_LOWEFF_SUPPORT
 	ret += snprintf(buf + ret, buf_len - ret, "met-info [000] 0.0: chn_emi_loweff_ctl0: ");
+	/*
 	for (i = 0; i < dram_chann_num && i<MET_MAX_DRAM_CH_NUM; i++) {
 
 		ret += snprintf(buf + ret, buf_len - ret, "%x",MET_EMI_Get_LOWEFF_CTL0(i));
@@ -2949,6 +3083,9 @@ int emi_create_header(char *buf, int buf_len)
 			ret += snprintf(buf + ret, buf_len - ret, ",");
 	}
 	ret += snprintf(buf + ret, buf_len - ret, "\n");
+	*/
+	ret += snprintf(buf + ret, buf_len - ret, "%x\n",MET_EMI_Get_LOWEFF_CTL0(0));
+
 #endif
 	return ret;
 }
@@ -3042,6 +3179,8 @@ int emi_print_header_basic(char *buf, int len)
 	return len;
 }
 
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 void ondiemet_emi_start_basic(void)
 {
 	int ret;
@@ -3078,6 +3217,8 @@ void ondiemet_emi_stop_basic(void)
 	if (do_emi())
 		emi_uninit();
 }
+#endif
+#endif
 
 /*para*/
 EXPORT_SYMBOL(emi_inited);
@@ -3103,7 +3244,11 @@ EXPORT_SYMBOL(mdmcu_sel_enable);
 
 /*func*/
 EXPORT_SYMBOL(emi_init);
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 EXPORT_SYMBOL(ondiemet_emi_start_basic);
+#endif
+#endif
 EXPORT_SYMBOL(do_emi);
 EXPORT_SYMBOL(emi_create_header);
 EXPORT_SYMBOL(MET_EMI_Get_BaseClock_Rate);

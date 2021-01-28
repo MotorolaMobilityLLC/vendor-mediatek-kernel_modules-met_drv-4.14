@@ -40,13 +40,13 @@ __ATTR(backlight_tag_enable, 0664, bl_tag_enable_show, bl_tag_enable_store);
 static int led_brightness_changed_event(struct notifier_block *nb,
 					unsigned long event, void *v)
 {
-	struct led_classdev *led_cdev;
+	struct led_conf_info *led_conf;
 
-	led_cdev = (struct led_classdev *)v;
+	led_conf = (struct led_conf_info *)v;
 
 	switch (event) {
 	case 1:
-		output_met_backlight_tag_real(led_cdev->brightness);
+		output_met_backlight_tag_real(led_conf->cdev.brightness);
 		break;
 	default:
 		break;

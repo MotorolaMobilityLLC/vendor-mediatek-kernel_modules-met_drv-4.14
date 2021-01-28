@@ -645,13 +645,13 @@ int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 	int i;
 	unsigned int emi_no;
 
-	const unsigned int Mask_busid = 0x1FFF;
+	const unsigned int Mask_busid = 0xFFFF;
 	const unsigned int offset_busid  = 16;
 
 	const unsigned int Mask_enable = 0x1;
 	const unsigned int offset_enable  = 3;
 
-	const unsigned int Mask_idMask = 0x1FFF;
+	const unsigned int Mask_idMask = 0xFFFF;
 	const unsigned int offset_idMask_even  = 0;
 	const unsigned int offset_idMask_odd  = 16;
 
@@ -662,8 +662,8 @@ int MET_BM_SetWSCT_busid_idmask(unsigned int *busid, unsigned int *idMask)
 			/*enable, SEL_ID_TMP*/
 			if (*(busid+i)>0xffff) {
 				enable_tmp = 0;
-				busid_tmp = 0x1FFF;
-				idmask_tmp = 0x1FFF;
+				busid_tmp = 0xFFFF;
+				idmask_tmp = 0xFFFF;
 			}
 			else {
 				enable_tmp = 1;

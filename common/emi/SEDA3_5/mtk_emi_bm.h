@@ -7,8 +7,14 @@
 #ifndef __MT_MET_EMI_BM_BASIC_H__
 #define __MT_MET_EMI_BM_BASIC_H__
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT)
 #include "sspm/ondiemet_sspm.h"
+#elif defined(TINYSYS_SSPM_SUPPORT)
+#include "tinysys_sspm.h"
+#include "tinysys_mgr.h" /* for ondiemet_module */
+#include "sspm_met_ipi_handle.h"
+#endif
 #endif
 
 
@@ -139,13 +145,15 @@ enum {
 #define DUAL_RANK 2
 
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 enum BM_EMI_IPI_Type {
 	SET_BASE_EMI = 0x0,
 	SET_EBM_CONFIGS1 = 0x7,
 	SET_EBM_CONFIGS2 = 0x8,
 	SET_REGISTER_CB = 0x9,
 };
+#endif
 #endif
 
 
@@ -744,6 +752,7 @@ DECLARE_KOBJ_TTYPE_BUSID_VAL(21);
 		KOBJ_ATTR_ITEM(wmask_msel); \
 		KOBJ_ATTR_ITEM(ageexp_msel_rw); \
 		KOBJ_ATTR_ITEM(default_val); \
+		KOBJ_ATTR_ITEM(sspm_support_feature); \
 	} while (0)
 
 

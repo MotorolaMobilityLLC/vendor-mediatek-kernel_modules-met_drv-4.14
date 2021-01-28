@@ -15,8 +15,14 @@
 #include "mtk_emi_bm.h"
 #include "met_drv.h"
 #include "interface.h"
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT)
 #include "sspm/ondiemet_sspm.h"
+#elif defined(TINYSYS_SSPM_SUPPORT)
+#include "tinysys_sspm.h"
+#include "tinysys_mgr.h" /* for ondiemet_module */
+#endif
 #endif
 
 #undef	DEBUG

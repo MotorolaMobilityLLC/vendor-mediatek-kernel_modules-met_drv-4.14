@@ -115,13 +115,15 @@ enum {
 #define ONE_RANK 1
 #define DUAL_RANK 2
 
-#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 enum BM_EMI_IPI_Type {
 	SET_BASE_EMI = 0x0,
 	SET_EBM_CONFIGS1 = 0x7,
 	SET_EBM_CONFIGS2 = 0x8,
 	SET_REGISTER_CB = 0x9,
 };
+#endif
 #endif
 
 #define	EMI_OFF			0x0000

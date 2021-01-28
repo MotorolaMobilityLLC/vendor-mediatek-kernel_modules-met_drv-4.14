@@ -41,4 +41,16 @@ EMI_LOWEFF_SUPPORT := y
 ################################################################################
 FEATURE_EVENT_POWER := n
 FEATURE_SPMTWAM := n
-FEATURE_ONDIEMET := y
+FEATURE_ONDIEMET := n
+
+################################################################################
+# TINYSYS On/Off
+################################################################################
+TINYSYS_VERSION := v1
+FEATURE_TINYSYS := y
+FEATURE_SSPM_NUM := 1
+FEATURE_CPU_EB_NUM := 1
+FEATURE_SCP_NUM := 0
+ifeq ($(FEATURE_TINYSYS), y)
+    FEATURE_ONDIEMET := n
+endif
