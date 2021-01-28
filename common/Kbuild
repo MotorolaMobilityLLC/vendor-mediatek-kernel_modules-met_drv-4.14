@@ -360,6 +360,16 @@ ifneq ($(FEATURE_ONDIEMET), n)
             SYS_SSPM_READY := n
         endif
 
+        SSPM_VERSION := $(if $(SSPM_VERSION),$(SSPM_VERSION),v1)
+        $(info SSPM_VERSION = $(SSPM_VERSION))
+
+        # for smi_met_conf format
+        ifeq ($(SSPM_VERSION), v2)
+            ccflags-y += -DSMI_MASTER_8BIT
+        endif
+
+        MET_SSPM_INC := $(srctree)/drivers/misc/mediatek/sspm/$(SSPM_VERSION)
+
         # for sspm_ipi.h
         ifneq ("$(wildcard $(MET_SSPM_INC)/sspm_ipi.h)","")
             ccflags-y += -I$(MET_SSPM_INC)

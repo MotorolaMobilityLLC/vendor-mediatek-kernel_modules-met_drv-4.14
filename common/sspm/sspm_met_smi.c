@@ -36,6 +36,20 @@
 #define NPORT_IN_PM		4
 
 // SMI Encode -- Master
+#ifdef SMI_MASTER_8BIT
+// bit15~bit16
+#define MET_SMI_BIT_REQ_LARB	15
+// bit13~bit14
+#define MET_SMI_BIT_REQ_COMM	13
+// bit12:Parallel Mode */
+#define MET_SMI_BIT_PM		12
+// bit9~bit8:Destination */
+#define MET_SMI_BIT_DST		10
+/* bit5~bit4:Request Type */
+#define MET_SMI_BIT_REQ		8
+/* bit3~bit0:Master */
+#define MET_SMI_BIT_MASTER	0
+#else
 // bit15~bit16
 #define MET_SMI_BIT_REQ_LARB	15
 // bit13~bit14
@@ -48,6 +62,7 @@
 #define MET_SMI_BIT_REQ		4
 /* bit3~bit0:Master */
 #define MET_SMI_BIT_MASTER	0
+#endif
 
 // SMI Encode -- Metadata
 /* bit6~bit5:RW */
