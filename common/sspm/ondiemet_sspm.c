@@ -33,7 +33,13 @@
 
 dma_addr_t ondiemet_sspm_log_phy_addr;
 void *ondiemet_sspm_log_virt_addr;
-uint32_t ondiemet_sspm_log_size = 0x400000;
+
+#ifdef DYNAMIC_ALLOC_ODM_BUF_SIZE
+uint32_t ondiemet_sspm_log_size = DYNAMIC_ALLOC_ODM_BUF_SIZE;
+#else
+uint32_t ondiemet_sspm_log_size = 0x800000;
+#endif
+
 
 /* SSPM_LOG_FILE 0 */
 /* SSPM_LOG_SRAM 1 */

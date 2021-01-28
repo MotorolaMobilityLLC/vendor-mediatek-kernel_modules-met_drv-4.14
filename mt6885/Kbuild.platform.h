@@ -32,6 +32,7 @@ SPMTWAM_VERSION := sspm
 SPMTWAM_IDLE_SIGNAL_SUPPORT := multiple
 GPU_STALL_CNT_TYPE := single
 SSPM_VERSION := v2
+DYNAMIC_ALLOC_ODM_BUF_SIZE := 0x800000
 
 ################################################################################
 # Feature On/Off

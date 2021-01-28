@@ -563,7 +563,7 @@ unsigned int MET_EMI_Get_BaseClock_Rate(void)
 		if (mtk_dramc_get_ddr_type_symbol) {
 			DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
-			if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
+			if ((DRAM_TYPE == 5) || (DRAM_TYPE == 6) || (DRAM_TYPE == 7))
 				return DRAM_EMI_BASECLOCK_RATE_LP4;
 			else
 				return DRAM_EMI_BASECLOCK_RATE_LP3;

@@ -30,6 +30,7 @@ EMI_SEDA_VERSION := SEDA3_5
 SPMTWAM_VERSION := sspm
 SPMTWAM_IDLE_SIGNAL_SUPPORT := multiple
 SSPM_VERSION := v1
+DYNAMIC_ALLOC_ODM_BUF_SIZE := 0x400000
 
 ################################################################################
 # Feature On/Off

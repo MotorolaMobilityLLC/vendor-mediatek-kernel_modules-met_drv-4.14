@@ -395,6 +395,11 @@ ifneq ($(FEATURE_ONDIEMET), n)
 
             SYS_SSPM_READY := n
         endif
+
+        # for dynamic allocate ondiemet dram buffer size
+        ifneq ($(DYNAMIC_ALLOC_ODM_BUF_SIZE),)
+            ccflags-y += -DDYNAMIC_ALLOC_ODM_BUF_SIZE=$(DYNAMIC_ALLOC_ODM_BUF_SIZE)
+        endif
     else
         $(info ======== CONFIG_MTK_TINYSYS_SSPM_SUPPORT = n ========)
         $(info ======== disable ALL ondiemet feature ========)
@@ -751,6 +756,11 @@ ifneq ($(FEATURE_ONDIEMET), n)
             $(info ======== disable ALL ondiemet feature ========)
 
             SYS_SSPM_READY := n
+        endif
+
+        # for dynamic allocate ondiemet dram buffer size
+        ifneq ($(DYNAMIC_ALLOC_ODM_BUF_SIZE),)
+            ccflags-y += -DDYNAMIC_ALLOC_ODM_BUF_SIZE=$(DYNAMIC_ALLOC_ODM_BUF_SIZE)
         endif
     else
         $(info ======== CONFIG_MTK_TINYSYS_SSPM_SUPPORT = n ========)
