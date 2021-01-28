@@ -1,5 +1,5 @@
 ################################################################################
-#	MET Kernel module mode
+#   MET Kernel module mode
 ################################################################################
 ifneq ($(CONFIG_MTK_MET_BUILT_IN),y)
 $(info ======== Build met.ko ... ========)
@@ -310,7 +310,7 @@ FEATURE_EVENT_POWER := $(if $(FEATURE_EVENT_POWER),$(FEATURE_EVENT_POWER),y)
 $(info FEATURE_EVENT_POWER = $(FEATURE_EVENT_POWER))
 
 ifeq ($(FEATURE_EVENT_POWER), y)
-	ccflags-y += -DMET_EVENT_POWER_SUPPORT
+    ccflags-y += -DMET_EVENT_POWER_SUPPORT
 endif
 
 ################################################################################
@@ -326,9 +326,6 @@ endif
 $(info FEATURE_ONDIEMET = $(FEATURE_ONDIEMET))
 $(info FEATURE_ONDIEMET_WALLTIME = $(FEATURE_ONDIEMET_WALLTIME))
 
-SSPM_VERSION := $(if $(SSPM_VERSION),$(SSPM_VERSION),v1)
-$(info SSPM_VERSION = $(SSPM_VERSION))
-
 ifneq ($(FEATURE_ONDIEMET), n)
     subdir-ccflags-y += -DONDIEMET_SUPPORT
 
@@ -339,8 +336,7 @@ ifneq ($(FEATURE_ONDIEMET), n)
     endif
 
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
-        # for sspm_ipi.h
-        subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(SSPM_VERSION)
+        subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
         met-y += $(MET_CORE)/sspm/sspm_ipi_handle.o
         met-y += $(MET_CORE)/sspm/sspm_common.o
@@ -358,9 +354,15 @@ ifneq ($(FEATURE_ONDIEMET), n)
             SYS_SSPM_READY := n
         endif
 
-        MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
-        met-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
+        # for sspm_ipi.h
+        ifneq ("$(wildcard $(MET_SSPM_INC)/sspm_ipi.h)","")
+            ccflags-y += -I$(MET_SSPM_INC)
+        else
+            $(info ======== Missing $(MET_SSPM_INC)/sspm_ipi.h ========)
+            $(info ======== disable ALL ondiemet feature ========)
 
+            SYS_SSPM_READY := n
+        endif
     else
         $(info ======== CONFIG_MTK_TINYSYS_SSPM_SUPPORT = n ========)
         $(info ======== disable ALL ondiemet feature ========)
@@ -370,12 +372,14 @@ ifneq ($(FEATURE_ONDIEMET), n)
 
     ifeq ($(SYS_SSPM_READY), y)
         MET_SSPM_WALLTIME := $(if $(filter n,$(FEATURE_ONDIEMET_WALLTIME)),n,y)
-
         met-$(MET_SSPM_WALLTIME) += $(MET_CORE)/sspm/sspm_walltime.o
+
+        MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
+        met-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
     endif
 endif
 ################################################################################
-#	MET built in mode
+#   MET built in mode
 ################################################################################
 else # ifneq ($(CONFIG_MTK_MET_BUILT_IN),y)
 $(info ======== MET Built in ... ========)
@@ -625,9 +629,9 @@ obj-$(MET_WALLTIME) += $(MET_CORE)/met_wall_time.o
 FEATURE_SMI := $(if $(FEATURE_SMI),$(FEATURE_SMI),y)
 $(info FEATURE_SMI = $(FEATURE_SMI))
 
-MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
+#MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
 
-obj-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
+#obj-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
 
 
 ################################################################################
@@ -637,7 +641,7 @@ FEATURE_EVENT_POWER := $(if $(FEATURE_EVENT_POWER),$(FEATURE_EVENT_POWER),y)
 $(info FEATURE_EVENT_POWER = $(FEATURE_EVENT_POWER))
 
 ifeq ($(FEATURE_EVENT_POWER), y)
-	ccflags-y += -DMET_EVENT_POWER_SUPPORT
+    ccflags-y += -DMET_EVENT_POWER_SUPPORT
 endif
 
 ################################################################################
@@ -663,7 +667,6 @@ ifneq ($(FEATURE_ONDIEMET), n)
     endif
 
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
-        # for sspm_ipi.h
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
         obj-y += $(MET_CORE)/sspm/sspm_ipi_handle.o
@@ -681,6 +684,16 @@ ifneq ($(FEATURE_ONDIEMET), n)
 
             SYS_SSPM_READY := n
         endif
+
+        # for sspm_ipi.h
+        ifneq ("$(wildcard $(MET_SSPM_INC)/sspm_ipi.h)","")
+            ccflags-y += -I$(MET_SSPM_INC)
+        else
+            $(info ======== Missing $(MET_SSPM_INC)/sspm_ipi.h ========)
+            $(info ======== disable ALL ondiemet feature ========)
+
+            SYS_SSPM_READY := n
+        endif
     else
         $(info ======== CONFIG_MTK_TINYSYS_SSPM_SUPPORT = n ========)
         $(info ======== disable ALL ondiemet feature ========)
@@ -690,8 +703,10 @@ ifneq ($(FEATURE_ONDIEMET), n)
 
     ifeq ($(SYS_SSPM_READY), y)
         MET_SSPM_WALLTIME := $(if $(filter n,$(FEATURE_ONDIEMET_WALLTIME)),n,y)
-
         obj-$(MET_SSPM_WALLTIME) += $(MET_CORE)/sspm/sspm_walltime.o
+
+        MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
+        met-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
     endif
 endif
 
