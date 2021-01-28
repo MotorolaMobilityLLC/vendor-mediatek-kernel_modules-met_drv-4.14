@@ -134,16 +134,16 @@ void stop_sspm_ipi_recv_thread()
 	if (_sspm_recv_task) {
 		sspm_recv_thread_comp = 1;
 
-		kthread_stop(_sspm_recv_task);
-		_sspm_recv_task = NULL;
-		sspm_ipi_thread_started = 0;
-
 		if (sspm_ipidev_symbol) {
 			// tinysys send ipi to APSYS
 			mtk_ipi_unregister(sspm_ipidev_symbol, IPIR_C_MET);
 			// APSYS send ipi to tinysys
 			mtk_ipi_unregister(sspm_ipidev_symbol, IPIS_C_MET);
 		}
+
+		kthread_stop(_sspm_recv_task);
+		_sspm_recv_task = NULL;
+		sspm_ipi_thread_started = 0;
 	}
 }
 
