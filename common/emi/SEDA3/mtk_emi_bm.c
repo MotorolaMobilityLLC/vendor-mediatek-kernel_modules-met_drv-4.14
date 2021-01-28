@@ -310,8 +310,8 @@ unsigned int MET_EMI_Get_BaseClock_Rate(void)
 		return get_cur_ddr_ratio_symbol();
 	else {
 
-		if (get_ddr_type_symbol) {	
-			DRAM_TYPE = get_ddr_type_symbol();
+		if (mtk_dramc_get_ddr_type_symbol) {
+			DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 			if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
 				return DRAM_EMI_BASECLOCK_RATE_LP4;

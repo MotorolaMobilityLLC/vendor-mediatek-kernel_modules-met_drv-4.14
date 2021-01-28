@@ -91,15 +91,15 @@ static unsigned int get_emi_clock_rate(unsigned int dram_data_rate_MHz)
 {
 	unsigned int DRAM_TYPE;
 
-	if (get_ddr_type_symbol) {
-		DRAM_TYPE = get_ddr_type_symbol();
+	if (mtk_dramc_get_ddr_type_symbol) {
+		DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 		if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
 			return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP4 / DRAM_DATARATE;
 		else
 			return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP3 / DRAM_DATARATE;
 	} else {
-		METERROR("[%s][%d]get_ddr_type_symbol = NULL , use the TYPE_LPDDR3 setting\n", __func__, __LINE__);
+		METERROR("[%s][%d]mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR3 setting\n", __func__, __LINE__);
 		return dram_data_rate_MHz / DRAM_EMI_BASECLOCK_RATE_LP3 / DRAM_DATARATE;
 	}
 }
@@ -2011,8 +2011,8 @@ static int emi_print_header(char *buf, int len)
 	if (!get_cur_ddr_ratio_symbol)
 		PR_BOOTMSG("[%s][%d]get_cur_ddr_ratio_symbol = NULL , use the TYPE_LPDDR4 get_cur_ddr_ratio_symbol\n", __func__, __LINE__);
 
-	if (get_ddr_type_symbol) {
-		DRAM_TYPE = get_ddr_type_symbol();
+	if (mtk_dramc_get_ddr_type_symbol) {
+		DRAM_TYPE = mtk_dramc_get_ddr_type_symbol();
 
 		base_clock_rate = MET_EMI_Get_BaseClock_Rate();
 
@@ -2027,14 +2027,14 @@ static int emi_print_header(char *buf, int len)
 					dram_chann_num, base_clock_rate,
 					DRAM_IO_BUS_WIDTH_LP3, DRAM_DATARATE);
 	} else
-		METERROR("[%s][%d]get_ddr_type_symbol = NULL , use the TYPE_LPDDR3 setting\n", __func__, __LINE__);
+		METERROR("[%s][%d]mtk_dramc_get_ddr_type_symbol = NULL , use the TYPE_LPDDR3 setting\n", __func__, __LINE__);
 
 
 	/* met_emi_clockrate */
-	if (get_dram_data_rate_symbol) {
-		dram_data_rate_MHz = get_dram_data_rate_symbol();
+	if (mtk_dramc_get_data_rate_symbol) {
+		dram_data_rate_MHz = mtk_dramc_get_data_rate_symbol();
 	} else {
-		METERROR("get_dram_data_rate_symbol = NULL\n");
+		METERROR("mtk_dramc_get_data_rate_symbol = NULL\n");
 		dram_data_rate_MHz = 0;
 	}
 
