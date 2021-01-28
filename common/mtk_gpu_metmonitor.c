@@ -574,7 +574,7 @@ static const char help_pmu[] = "  --gpu-pmu				monitor gpu pmu status";
 static const char header_pmu[] = "met-info [000] 0.0: met_gpu_pmu_header: ";
 static char pmu_str[MAX_PMU_STR_LEN];
 static int pmu_cnt;
-static int gpu_pwr_status = 1;
+/* static int gpu_pwr_status = 1; */
 static GPU_PMU *pmu_list;
 
 
@@ -657,25 +657,6 @@ static void delete_gpu_pmu_list(void)
 	pmu_cnt = 0;
 }
 
-static void gpu_pwr_status_cb(int on)
-{
-	MET_TRACE("on = %d\n", on);
-
-	if (on == 1) {
-		/*
-		* dummy read in order to reset GPU PMU counter
-		*/
-		if (mtk_get_gpu_pmu_swapnreset_symbol)
-			mtk_get_gpu_pmu_swapnreset_symbol(pmu_list, pmu_cnt);
-
-	} else {
-		GPU_PMU_RAW(1, 0);
-		GPU_PMU_RAW(0, 0);
-	}
-
-	gpu_pwr_status = on;
-}
-
 static void gpu_pmu_monitor_start(void)
 {
 	int ret;
@@ -683,9 +664,6 @@ static void gpu_pmu_monitor_start(void)
 	ret = create_gpu_pmu_list();
 	if (ret == 0)
 		return;
-
-	if (mtk_register_gpu_power_change_symbol)
-		mtk_register_gpu_power_change_symbol("met_gpu", gpu_pwr_status_cb);
 
 #ifdef GPU_HAL_RUN_PREMPTIBLE
 	INIT_DELAYED_WORK(&gpu_pmu_dwork, GPU_PMU_RAW);
@@ -698,8 +676,6 @@ static void gpu_pmu_monitor_stop(void)
 	cancel_delayed_work_sync(&gpu_pmu_dwork);
 #endif
 
-	if (mtk_unregister_gpu_power_change_symbol)
-		mtk_unregister_gpu_power_change_symbol("met_gpu");
 	delete_gpu_pmu_list();
 
 #if 1
@@ -731,8 +707,7 @@ static void gpu_pmu_timed_polling(
 	UNUSE_ARG(stamp);
 	UNUSE_ARG(cpu);
 
-	if (gpu_pwr_status == 1)
-		GPU_PMU_RAW(stamp, cpu);
+	GPU_PMU_RAW(stamp, cpu);
 }
 #endif
 
