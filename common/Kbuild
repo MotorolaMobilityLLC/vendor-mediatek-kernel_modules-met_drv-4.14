@@ -6,10 +6,10 @@ $(info ======== Build met.ko ... ========)
 MET_CORE := common
 obj-m := met.o
 
-ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.include),)
-    include $(MET_PLF_DIR)/Kbuild.platform.include
+ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.h),)
+    include $(MET_PLF_DIR)/Kbuild.platform.h
 else
-    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.include ========)
+    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.h ========)
 endif
 
 ccflags-y += -DCONFIG_MET_MODULE
@@ -93,7 +93,6 @@ ifneq ($(FEATURE_SPMTWAM), n)
 else
     MET_SPM_TWAM := n
 endif
-MET_SPM_TWAM := n
 
 $(info SPMTWAM_VERSION = $(SPMTWAM_VERSION))
 $(info SPMTWAM_IDLE_SIGNAL_SUPPORT = $(SPMTWAM_IDLE_SIGNAL_SUPPORT))
