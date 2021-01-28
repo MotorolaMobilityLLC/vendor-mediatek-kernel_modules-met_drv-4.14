@@ -16,6 +16,7 @@
 #include <linux/slab.h>
 #include <linux/list.h>
 #include <linux/debugfs.h>
+#include <linux/proc_fs.h>
 #include <linux/mutex.h>
 #include <linux/semaphore.h>
 #include <linux/freezer.h>
@@ -23,6 +24,7 @@
 #include <linux/completion.h>
 
 #include "ondiemet_log.h"
+#include "interface.h"
 
 #define ONDIEMET_LOG_REQ 1
 /* TODO: abandon this constatnt */
@@ -35,7 +37,11 @@
 #define ONDIEMET_LOG_DEBUG_MODE 2
 
 static int ondiemet_trace_run;
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 static struct dentry *dbgfs_met_dir;
+#else
+static struct proc_dir_entry *procfs_met_dir;
+#endif
 
 struct mutex lock_tracef;
 struct ondiemet_log_req_q_t {
@@ -474,7 +480,11 @@ static DEVICE_ATTR(ondiemet_log_run, 0660, ondiemet_log_run_show, ondiemet_log_r
 int ondiemet_log_manager_init(struct device *dev)
 {
 	int ret;
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	struct dentry *d;
+#else
+	struct proc_dir_entry *d;
+#endif
 
 	mutex_init(&lock_tracef);
 
@@ -485,19 +495,35 @@ int ondiemet_log_manager_init(struct device *dev)
 	init_completion(&log_start_comp);
 	init_completion(&log_stop_comp);
 
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	dbgfs_met_dir = debugfs_create_dir("ondiemet", NULL);
 	if (!dbgfs_met_dir) {
-		pr_debug("[met] can not create debugfs directory: met\n");
+		PR_BOOTMSG("[met] can not create debugfs directory: ondiemet\n");
 		return -ENOMEM;
 	}
+#else
+	procfs_met_dir = proc_mkdir("ondiemet", NULL);
+	if (!procfs_met_dir) {
+		PR_BOOTMSG("[met] can not create proc directory: ondiemet\n");
+		return -ENOMEM;
+	}
+#endif
 
 	mutex_init(&lock_trace_owner_pid);
 
-	d = debugfs_create_file("trace", 0644, dbgfs_met_dir, NULL, &ondiemet_trace_fops);
+#ifdef ONDIEMET_MOUNT_DEBUGFS
+	d = debugfs_create_file("trace", 0600, dbgfs_met_dir, NULL, &ondiemet_trace_fops);
 	if (!d) {
-		pr_debug("[met] can not create devide node in debugfs: ondiemet_trace\n");
+		PR_BOOTMSG("[met] can not create devide node in debugfs: ondiemet_trace\n");
 		return -ENOMEM;
 	}
+#else
+	d = proc_create("trace", 0600, procfs_met_dir, &ondiemet_trace_fops);
+	if (!d) {
+		PR_BOOTMSG("[met] can not create devide node in procfs: ondiemet_trace\n");
+		return -ENOMEM;
+	}
+#endif
 
 	ondiemet_trace_run = __ondiemet_log_req_working();
 	ret = device_create_file(dev, &dev_attr_ondiemet_log_run);
@@ -512,6 +538,11 @@ int ondiemet_log_manager_init(struct device *dev)
 int ondiemet_log_manager_uninit(struct device *dev)
 {
 	device_remove_file(dev, &dev_attr_ondiemet_log_run);
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	debugfs_remove_recursive(dbgfs_met_dir);
+#else
+	proc_remove(procfs_met_dir);
+#endif
+
 	return 0;
 }

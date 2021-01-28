@@ -10,6 +10,7 @@
 #include <linux/slab.h>
 #include <linux/list.h>
 #include <linux/debugfs.h>
+#include <linux/proc_fs.h>
 #include <linux/mutex.h>
 #include <linux/semaphore.h>
 #include <linux/freezer.h>
@@ -172,8 +173,13 @@ static const struct file_operations sspm_trace_fops = {
 int sspm_log_init(struct device *dev)
 {
 	int ret = 0;
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	struct dentry *d;
 	struct dentry *met_dir = NULL;
+#else
+	struct proc_dir_entry *d;
+	struct proc_dir_entry *met_dir = NULL;
+#endif
 	phys_addr_t (*get_size_sym)(unsigned int id) = NULL;
 
 	met_dir = dev_get_drvdata(dev);
@@ -183,11 +189,19 @@ int sspm_log_init(struct device *dev)
 	init_completion(&log_stop_comp);
 	mutex_init(&lock_trace_owner_pid);
 
-	d = debugfs_create_file("trace", 0664, met_dir, NULL, &sspm_trace_fops);
+#ifdef ONDIEMET_MOUNT_DEBUGFS
+	d = debugfs_create_file("trace", 0600, met_dir, NULL, &sspm_trace_fops);
 	if (!d) {
 		PR_BOOTMSG("can not create devide node in debugfs: sspm_trace\n");
 		return -ENOMEM;
 	}
+#else
+	d = proc_create("trace", 0600, met_dir, NULL, &sspm_trace_fops);
+	if (!d) {
+		PR_BOOTMSG("can not create devide node in procfs: sspm_trace\n");
+		return -ENOMEM;
+	}
+#endif
 
 	sspm_trace_run = _sspm_log_req_working();
 	ret = device_create_file(dev, &dev_attr_ondiemet_log_run);

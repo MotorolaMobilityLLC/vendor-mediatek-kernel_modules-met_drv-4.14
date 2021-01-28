@@ -8,6 +8,7 @@
 #include <linux/kernel.h>
 #include <linux/errno.h>
 #include <linux/debugfs.h>
+#include <linux/proc_fs.h>
 #include <linux/semaphore.h>
 #include <linux/module.h>   /* symbol_get */
 #include <linux/jiffies.h> /* timespec_to_jiffies */
@@ -80,14 +81,25 @@ static unsigned int _g_cpu_eb_status;
  *****************************************************************************/
 int tinysys_log_manager_init(struct device *dev)
 {
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	struct dentry *dbgfs_met_dir = NULL;
 
 	dbgfs_met_dir = debugfs_create_dir("ondiemet", NULL);
 	if (dbgfs_met_dir == NULL) {
-		pr_debug("[MET] can not create debugfs directory: MET\n");
+		PR_BOOTMSG("[MET] can not create debugfs directory: ondiemet\n");
 		return -ENOMEM;
 	}
 	dev_set_drvdata(dev, dbgfs_met_dir);
+#else
+	struct proc_dir_entry *procfs_met_dir = NULL;
+
+	procfs_met_dir = proc_mkdir("ondiemet", NULL);
+	if (procfs_met_dir == NULL) {
+		PR_BOOTMSG("[MET] can not create procfs directory: ondiemet\n");
+		return -ENOMEM;
+	}
+	dev_set_drvdata(dev, procfs_met_dir);
+#endif
 
 #if FEATURE_SSPM_NUM
 	sspm_log_init(dev);
@@ -103,7 +115,11 @@ int tinysys_log_manager_init(struct device *dev)
 
 int tinysys_log_manager_uninit(struct device *dev)
 {
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	struct dentry *dbgfs_met_dir = NULL;
+#else
+	struct proc_dir_entry *procfs_met_dir = NULL;
+#endif
 
 #if FEATURE_SSPM_NUM
 	sspm_log_uninit(dev);
@@ -113,11 +129,19 @@ int tinysys_log_manager_uninit(struct device *dev)
 	cpu_eb_log_uninit(dev);
 #endif
 
+#ifdef ONDIEMET_MOUNT_DEBUGFS
 	dbgfs_met_dir = dev_get_drvdata(dev);
 	if (dbgfs_met_dir) {
 		debugfs_remove_recursive(dbgfs_met_dir);
 		dev_set_drvdata(dev, NULL);
 	}
+#else
+	procfs_met_dir = dev_get_drvdata(dev);
+	if (procfs_met_dir) {
+		proc_remove(procfs_met_dir);
+		dev_set_drvdata(dev, NULL);
+	}
+#endif
 
 	return 0;
 }
