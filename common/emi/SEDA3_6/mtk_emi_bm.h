@@ -1,20 +1,16 @@
+/*  SPDX-License-Identifier: GPL-2.0 */  
 /*
  * Copyright (C) 2019 MediaTek Inc.
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License version 2 as
- * published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
  */
 #ifndef __MT_MET_EMI_BM_H__
 #define __MT_MET_EMI_BM_H__
 
 #define EMI_VER_MAJOR  3
-#define EMI_VER_MINOR  5
+#define EMI_VER_MINOR  6
+
+#define EMI_NUM_MAX     2
+#define EMI_NUM 	2
 
 #define FILE_NODE_DATA_LEN 512 
 #define WSCT_AMOUNT 6
@@ -29,8 +25,11 @@
 
 #define DRAM_DATARATE   2
 
-#define ADDR_EMI        ((unsigned long)BaseAddrEMI)
+#define DRAM_FREQ_DEFAULT  3733
+#define DDR_RATIO_DEFAULT  8
+#define DRAM_TYPE_DEFAULT  3
 
+/*#define ADDR_EMI        ((unsigned long)BaseAddrEMI)*/
 
 #define BM_MASTER_M0            (0x01)
 #define BM_MASTER_M1            (0x02)
@@ -278,12 +277,12 @@ extern int MET_BM_SetUltraHighFilter(const unsigned int counter_num, const unsig
 extern int MET_BM_SetLatencyCounter(unsigned int enable);
 extern void MET_BM_SetReadWriteType(const unsigned int ReadWriteType);
 
-extern unsigned int MET_EMI_GetDramRankNum(void);
-extern unsigned int MET_EMI_GetDramRankNum_CHN1(void);
+extern unsigned int MET_EMI_GetDramRankNum(unsigned int emi_no);
+extern unsigned int MET_EMI_GetDramRankNum_CHN1(unsigned int emi_no);
 
 
-unsigned int MET_EMI_GetDramChannNum(void);
-unsigned int MET_EMI_Get_CONH_2ND(void);
+unsigned int MET_EMI_GetDramChannNum(unsigned int emi_no);
+unsigned int MET_EMI_Get_CONH_2ND(unsigned int emi_no);
 
 /* SEDA 3.5 NEW */
 extern int MET_BM_SetWSCT_master_rw(unsigned int *master , unsigned int *rw);
