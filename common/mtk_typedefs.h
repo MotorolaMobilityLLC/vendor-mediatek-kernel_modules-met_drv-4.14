@@ -315,4 +315,43 @@
 #define METINFO(format, ...)	pr_debug("[MET]%s: "format, __func__, ##__VA_ARGS__)
 #define METERROR(format, ...)	pr_debug("[MET][ERR]%s: "format, __func__, ##__VA_ARGS__)
 
+
+#define SNPRINTF(str, size, format, ...) ({\
+       int ret; \
+       ret = snprintf(str, size, format, ##__VA_ARGS__); \
+       if (ret < 0 || ret >= size) \
+               PR_BOOTMSG("!!ERROR: SNPRINTF fail!!\n"); \
+       ret; \
+       })
+/*
+#define FWRITE(buf, size, nmemb, fstream) ({\
+       int ret; \
+       ret = fwrite(buf, size, nmemb, fstream); \
+       if (ret < nmemb) \
+               PR_BOOTMSG("!!ERROR: file content could be truncated!!\n"); \
+       })
+
+#define FPRINTF(fstream, format, ...) ({\
+       int ret; \
+       ret = fprintf(fstream, format, ##__VA_ARGS__); \
+       if (ret < 0) \
+               PR_BOOTMSG("!!ERROR: fprintf fail!!\n"); \
+       })
+
+#define FPUTS(str, fstream) ({\
+       int ret; \
+       ret = fputs(str, fstream); \
+       if (ret < 0) \
+               PR_BOOTMSG("!!ERROR: fputs fail!!\n"); \
+       })
+
+#define STRTOK(str, delim) ({\
+       char *c; \
+       c = strtok(str, delim); \
+       if (c == NULL) {} \
+       c; \
+       })
+*/
+
+
 #endif	/* _MT_TYPEDEFS_H__ */
