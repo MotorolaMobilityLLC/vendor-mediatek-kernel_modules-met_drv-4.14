@@ -251,3 +251,82 @@ int MET_BM_SetLatencyCounter(unsigned int enable)
 
 	return BM_REQ_OK;
 }
+
+unsigned int MET_EMI_GetDramChannNum(void)
+{
+	int num = -1;
+
+	if (BaseAddrEMI) {
+		num = emi_readl(IOMEM(ADDR_EMI + EMI_CONA));
+		num = ((num >> 8) & 0x0000003);
+	} else {
+		return 1;
+	}
+
+	if (num == M0_DOUBLE_HALF_BW_1CH)
+		return 1;
+	else if (num == M0_DOUBLE_HALF_BW_2CH)
+		return 2;
+	else if (num == M0_DOUBLE_HALF_BW_4CH)
+		return 4;
+	else                    /* default return single channel */
+		return 1;
+}
+
+
+unsigned int MET_EMI_GetDramRankNum(void)
+{
+	int dual_rank = 0;
+
+	if (BaseAddrEMI) {
+		dual_rank = emi_readl(IOMEM(ADDR_EMI + EMI_CONA));
+		dual_rank = ((dual_rank >> 17) & RANK_MASK);
+	} else {
+		return DUAL_RANK;
+	}
+
+	if (dual_rank == DISABLE_DUAL_RANK_MODE)
+		return ONE_RANK;
+	else			/* default return dual rank */
+		return DUAL_RANK;
+}
+
+
+unsigned int MET_EMI_GetDramRankNum_CHN1(void)
+{
+	int dual_rank = 0;
+
+	if (BaseAddrEMI) {
+		dual_rank = emi_readl(IOMEM(ADDR_EMI + EMI_CONA));
+		dual_rank = ((dual_rank >> 16) & RANK_MASK);
+	} else {
+		return DUAL_RANK;
+	}
+
+	if (dual_rank == DISABLE_DUAL_RANK_MODE)
+		return ONE_RANK;
+	else			/* default return dual rank */
+		return DUAL_RANK;
+}
+
+unsigned int MET_EMI_Get_BaseClock_Rate(void)
+{
+	unsigned int DRAM_TYPE;
+
+	if (get_cur_ddr_ratio_symbol)
+		return get_cur_ddr_ratio_symbol();
+	else {
+
+		if (get_ddr_type_symbol) {	
+			DRAM_TYPE = get_ddr_type_symbol();
+
+			if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
+				return DRAM_EMI_BASECLOCK_RATE_LP4;
+			else
+				return DRAM_EMI_BASECLOCK_RATE_LP3;
+
+		} else {
+			return DRAM_EMI_BASECLOCK_RATE_LP4;
+		}
+	}
+}

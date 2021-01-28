@@ -2054,7 +2054,7 @@ static int emi_print_header(char *buf, int len)
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
 			"met-info [000] 0.0: met_dram_rank_num_header: %u,%u\n", MET_EMI_GetDramRankNum(),
 				MET_EMI_GetDramRankNum());
-
+#if 0
 	/* ms_emi header */
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
 			"# ms_emi: TS0,TS1,GP0_WSCT,GP1_WSCT,GP2_WSCT,GP3_WSCT,");
@@ -2077,7 +2077,7 @@ static int emi_print_header(char *buf, int len)
 				"read_bytes_%d,write_bytes_%d", i, i);
 	}
 	ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
-
+#endif
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
 			"met-info [000] 0.0: met_emi_header: TS0,TS1,GP0_WSCT,GP1_WSCT,GP2_WSCT,GP3_WSCT,");
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
@@ -2115,7 +2115,7 @@ static int emi_print_header(char *buf, int len)
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 				"RD_ULTRA,RD_MDMCU\n");
 	}
-
+#if 0
 	/* met_bw_limiter_header */
 	if (bw_limiter_enable == BM_BW_LIMITER_ENABLE) {
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
@@ -2123,6 +2123,34 @@ static int emi_print_header(char *buf, int len)
 		ret += snprintf(buf + ret, PAGE_SIZE - ret,
 				"ARBA,ARBB,ARBC,ARBD,ARBE,ARBF,ARBG,ARBH,BWCT0,BWCT1,BWCT2,BWCT3,BWCT4,BWST0,BWST1,BWCT0_2ND,BWCT1_2ND,BWST_2ND\n");
 	}
+#endif
+	/* met_bw_rgtor_header */
+
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,	"met-info [000] 0.0: met_bw_rgtor_unit_header: %x\n", MET_EMI_Get_CONH_2ND());
+
+#if 0
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: met_bw_rgtor_bgt_header: ");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_BGT_1ST_W_01,EMI_RGU_BGT_1ST_W_2,EMI_RGU_BGT_1ST_W_3,EMI_RGU_BGT_1ST_W_4,EMI_RGU_BGT_1ST_W_5,EMI_RGU_BGT_1ST_W_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_BGT_2ND_W_01,EMI_RGU_BGT_2ND_W_2,EMI_RGU_BGT_2ND_W_3,EMI_RGU_BGT_2ND_W_4,EMI_RGU_BGT_2ND_W_5,EMI_RGU_BGT_2ND_W_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_BGT_1ST_R_01,EMI_RGU_BGT_1ST_R_2,EMI_RGU_BGT_1ST_R_3,EMI_RGU_BGT_1ST_R_4,EMI_RGU_BGT_1ST_R_5,EMI_RGU_BGT_1ST_R_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_BGT_2ND_R_01,EMI_RGU_BGT_2ND_R_2,EMI_RGU_BGT_2ND_R_3,EMI_RGU_BGT_2ND_R_4,EMI_RGU_BGT_2ND_R_5,EMI_RGU_BGT_2ND_R_67\n");
+
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: met_bw_rgtor_upbnd_header: ");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_UPBND_1ST_W_01,EMI_RGU_UPBND_1ST_W_2,EMI_RGU_UPBND_1ST_W_3,EMI_RGU_UPBND_1ST_W_4,EMI_RGU_UPBND_1ST_W_5,EMI_RGU_UPBND_1ST_W_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_UPBND_2ND_W_01,EMI_RGU_UPBND_2ND_W_2,EMI_RGU_UPBND_2ND_W_3,EMI_RGU_UPBND_2ND_W_4,EMI_RGU_UPBND_2ND_W_5,EMI_RGU_UPBND_2ND_W_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_UPBND_1ST_R_01,EMI_RGU_UPBND_1ST_R_2,EMI_RGU_UPBND_1ST_R_3,EMI_RGU_UPBND_1ST_R_4,EMI_RGU_UPBND_1ST_R_5,EMI_RGU_UPBND_1ST_R_67,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"EMI_RGU_UPBND_2ND_R_01,EMI_RGU_UPBND_2ND_R_2,EMI_RGU_UPBND_2ND_R_3,EMI_RGU_UPBND_2ND_R_4,EMI_RGU_UPBND_2ND_R_5,EMI_RGU_UPBND_2ND_R_67\n");
+#endif
 
 	/* DRAM DVFS header */
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,

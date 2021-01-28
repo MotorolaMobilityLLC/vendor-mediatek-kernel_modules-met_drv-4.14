@@ -283,7 +283,7 @@ extern unsigned int MET_EMI_GetDramRankNum_CHN1(void);
 
 
 unsigned int MET_EMI_GetDramChannNum(void);
-
+unsigned int MET_EMI_Get_CONH_2ND(void);
 
 /* SEDA 3.5 NEW */
 extern int MET_BM_SetWSCT_master_rw(unsigned int *master , unsigned int *rw);

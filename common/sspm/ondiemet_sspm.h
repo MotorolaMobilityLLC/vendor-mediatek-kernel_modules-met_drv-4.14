@@ -92,6 +92,7 @@ enum {
 	MID_IOP_MON,
 	MID_CPU_INFO_MAPPING,
 	MID_SMI,
+	MID_PMU,
 
 	MID_COMMON = 0x1F
 };
@@ -110,6 +111,7 @@ enum {
 #define ID_COMMON      (1 << MID_COMMON)
 #define ID_CPU_INFO_MAPPING      (1 << MID_CPU_INFO_MAPPING)
 #define ID_SMI      (1 << MID_SMI)
+#define ID_PMU      (1 << MID_PMU)
 
 extern void ondiemet_extract(void);
 extern void ondiemet_stop(void);

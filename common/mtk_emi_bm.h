@@ -14,6 +14,17 @@
 #ifndef __MT_MET_EMI_BM_H__
 #define __MT_MET_EMI_BM_H__
 
+#define EMI_VER_MAJOR  3
+#define EMI_VER_MINOR  0
+
+
+#define DRAM_EMI_BASECLOCK_RATE_LP4     4
+#define DRAM_EMI_BASECLOCK_RATE_LP3     2
+
+#define DRAM_IO_BUS_WIDTH_LP4           16
+#define DRAM_IO_BUS_WIDTH_LP3           32
+
+#define DRAM_DATARATE   2
 
 #define	ADDR_EMI		((unsigned long) BaseAddrEMI)
 
@@ -94,6 +105,23 @@ enum {
 #define BM_TTYPE17_21_ENABLE			(0)
 #define BM_TTYPE17_21_DISABLE			(-1)
 
+#define BM_BW_LIMITER_ENABLE			(0)
+#define BM_BW_LIMITER_DISABLE			(-1)
+
+#define M0_DOUBLE_HALF_BW_1CH	(0x0)
+#define M0_DOUBLE_HALF_BW_2CH	(0x1)
+#define M0_DOUBLE_HALF_BW_4CH	(0x2)
+
+/* EMI Rank configuration */
+enum {
+	DISABLE_DUAL_RANK_MODE = 0,
+	ENABLE_DUAL_RANK_MODE,
+};
+
+#define RANK_MASK 0x1
+#define ONE_RANK 1
+#define DUAL_RANK 2
+
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
 enum BM_EMI_IPI_Type {
 	SET_BASE_EMI = 0x0,
@@ -104,6 +132,7 @@ enum BM_EMI_IPI_Type {
 #endif
 
 #define	EMI_OFF			0x0000
+#define EMI_CONA		(0x000-EMI_OFF)
 #define EMI_BMEN		(0x400-EMI_OFF)
 #define EMI_MSEL		(0x440-EMI_OFF)
 #define EMI_MSEL2		(0x468-EMI_OFF)
@@ -134,6 +163,12 @@ enum BM_EMI_IPI_Type {
 #define EMI_BMRW1		(0x4FC-EMI_OFF)
 
 
+extern unsigned int MET_EMI_GetDramRankNum(void);
+extern unsigned int MET_EMI_GetDramRankNum_CHN1(void);
+
+
+unsigned int MET_EMI_GetDramChannNum(void);
+
 extern int MET_BM_Init(void);
 extern void MET_BM_DeInit(void);
 extern void MET_BM_SaveCfg(void);
@@ -148,4 +183,5 @@ extern int MET_BM_SetbusID(const unsigned int counter_num,
 			   const unsigned int id);
 extern int MET_BM_SetUltraHighFilter(const unsigned int counter_num, const unsigned int enable);
 extern int MET_BM_SetLatencyCounter(unsigned int enable);
+extern unsigned int MET_EMI_Get_BaseClock_Rate(void);
 #endif				/* !__MT_MET_EMI_BM_H__ */

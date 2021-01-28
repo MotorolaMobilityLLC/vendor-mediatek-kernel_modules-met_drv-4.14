@@ -33,6 +33,7 @@
 /* #include "plf_trace.h" */
 #include "mtk_emi_bm.h"
 #include "interface.h"
+#include "met_dramc.h"
 
 #if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT) && defined(ONDIEMET_SUPPORT)
 #include "sspm/ondiemet_sspm.h"
@@ -42,6 +43,11 @@
 /*	Global variable definitions					*/
 /*======================================================================*/
 int emi_TP_busfiltr_enable;
+int emi_tsct_enable = 1;
+int emi_mdct_enable = 1;
+
+static int bw_limiter_enable = BM_BW_LIMITER_ENABLE;
+
 static int msel_enable;
 static unsigned int msel_group1 = _GP_1_Default;
 static unsigned int msel_group2 = _GP_2_Default;
@@ -53,7 +59,8 @@ static struct kobject *kobj_emi;
 static int ttype1_16_en = BM_TTYPE1_16_DISABLE;
 static int ttype17_21_en = BM_TTYPE17_21_DISABLE;
 
-
+static int dramc_pdir_enable = 1;
+static int dram_chann_num = 1;
 
 static int times;
 static ssize_t test_store(struct kobject *kobj,
@@ -481,6 +488,9 @@ static void emi_init(void)
 
 	MET_BM_SaveCfg();
 
+	/* get dram channel number */
+	dram_chann_num = MET_EMI_GetDramChannNum();
+
 	if ((ttype1_16_en != BM_TTYPE1_16_ENABLE) && (emi_TP_busfiltr_enable != 1)) {
 		if (msel_enable) {
 			msel_group_val[0] = _ALL;
@@ -684,54 +694,8 @@ static int emi_print_header(char *buf, int len)
 	int ret = 0;
 /*	int ret_m[21]; */
 	int i = 0;
-
-#if 0
-	for (i = 0; i < 21; i++) {
-		int k;
-
-		if (ttype_busid_val[i] > 0xffff) {
-			int j;
-
-			for (j = 0; j < ARRAY_SIZE(ttype_master_list_item); j++) {
-				if (ttype_master_val[i] == ttype_master_list_item[j].key) {
-					ret_m[i] = snprintf(ttype_name[i], TTYPE_NAME_STR_LEN, "ttype%d_%s",
-							    i + 1, ttype_master_list_item[j].val);
-					break;
-				}
-			}
-			if (j == ARRAY_SIZE(ttype_master_list_item))
-				ret_m[i] = snprintf(ttype_name[i], TTYPE_NAME_STR_LEN, "ttype%d_%s",
-						    i + 1, "unknown");
-		} else {
-			ret_m[i] = snprintf(ttype_name[i], TTYPE_NAME_STR_LEN, "ttype%d_%x",
-					    i + 1, ttype_busid_val[i]);
-		}
-
-		for (k = 0; k < ARRAY_SIZE(ttype_nbeat_list_item); k++) {
-			if (ttype_nbeat_val[i] == ttype_nbeat_list_item[k].key)
-				ret_m[i] += snprintf(ttype_name[i] + ret_m[i], TTYPE_NAME_STR_LEN - ret_m[i], "_%d",
-						     ttype_nbeat_list_item[k].val);
-		}
-
-		for (k = 0; k < ARRAY_SIZE(ttype_nbyte_list_item); k++) {
-			if (ttype_nbyte_val[i] == ttype_nbyte_list_item[k].key)
-				ret_m[i] += snprintf(ttype_name[i] + ret_m[i], TTYPE_NAME_STR_LEN - ret_m[i], "x%d",
-						     ttype_nbyte_list_item[k].val);
-		}
-
-		for (k = 0; k < ARRAY_SIZE(ttype_burst_list_item); k++) {
-			if (ttype_burst_val[i] == ttype_burst_list_item[k].key)
-				ret_m[i] += snprintf(ttype_name[i] + ret_m[i], TTYPE_NAME_STR_LEN - ret_m[i], "_%s",
-						     ttype_burst_list_item[k].val);
-		}
-
-		for (k = 0; k < ARRAY_SIZE(ttype_rw_list_item); k++) {
-			if (ttype_rw_val[i] == ttype_rw_list_item[k].key)
-				ret_m[i] += snprintf(ttype_name[i] + ret_m[i], TTYPE_NAME_STR_LEN - ret_m[i], "_%s",
-						     ttype_rw_list_item[k].val);
-		}
-	}
-#endif
+	unsigned int dram_data_rate_MHz;
+	unsigned int DRAM_TYPE;
 
 	if ((ttype1_16_en != BM_TTYPE1_16_ENABLE) && (emi_TP_busfiltr_enable != 1)) {
 		if (msel_enable) {
@@ -777,27 +741,7 @@ static int emi_print_header(char *buf, int len)
 
 	ret += snprintf(buf + ret, PAGE_SIZE - ret,
 			"met-info [000] 0.0: met_emi_ultra_filter: %x\n", high_priority_filter);
-#if 0
-	if ((ttype1_16_en == BM_TTYPE1_16_ENABLE) && (ttype17_21_en == BM_TTYPE17_21_ENABLE)) {
-		int i;
 
-		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: ms_ud_sys_header: ms_ttype,");
-		for (i = 0; i < 21; i++)
-			ret += snprintf(buf + ret, PAGE_SIZE - ret, "%s,", ttype_name[i]);
-
-		ret += snprintf(buf + ret, PAGE_SIZE - ret, "x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x\n");
-
-	} else if (ttype17_21_en == BM_TTYPE17_21_ENABLE) {
-		int i;
-
-		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: ms_ud_sys_header: ms_ttype,");
-
-		for (i = 16; i < 21; i++)
-			ret += snprintf(buf + ret, PAGE_SIZE - ret, "%s,", ttype_name[i]);
-
-		ret += snprintf(buf + ret, PAGE_SIZE - ret, "x,x,x,x,x\n");
-	}
-#else
 	/* ttype header */
 	if (ttype17_21_en == BM_TTYPE17_21_ENABLE) {
 		int i = 0;
@@ -858,8 +802,159 @@ static int emi_print_header(char *buf, int len)
 		/* ttype enable */
 		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_emi_ttype_enable: %d,%d\n",ttype1_16_en, ttype17_21_en);
 	}
+	/*IP version*/
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: DRAMC_VER: %d\n", DRAMC_VER);
+
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: EMI_VER: %d.%d\n", EMI_VER_MAJOR, EMI_VER_MINOR);
+#if 1 /* move to AP side print header */
+//#ifndef CONFIG_MTK_TINYSYS_SSPM_SUPPORT
+	dram_chann_num = MET_EMI_GetDramChannNum();
+	/*	met_dram_chann_num_header
+	 *	channel number
+	 *	LP4: 2, LP3: 1
+	 */
+
+	/*
+	 *	the ddr type define :
+	 *	enum DDRTYPE {
+	 *	TYPE_LPDDR3 = 1,
+	 *	TYPE_LPDDR4,
+	 *	TYPE_LPDDR4X,
+	 *	TYPE_LPDDR2
+	 *	};
+	 */
+	if (get_ddr_type_symbol) {
+		DRAM_TYPE = get_ddr_type_symbol();
+		ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_dram_type: %d\n", DRAM_TYPE);
+
+		if ((DRAM_TYPE == 2) || (DRAM_TYPE == 3))
+			ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_dram_chann_num_header: %d,%d,%d,%d\n",
+					dram_chann_num, DRAM_EMI_BASECLOCK_RATE_LP4,
+					DRAM_IO_BUS_WIDTH_LP4, DRAM_DATARATE);
+		else
+			ret += snprintf(buf + ret, PAGE_SIZE - ret, "met-info [000] 0.0: met_dram_chann_num_header: %d,%d,%d,%d\n",
+					dram_chann_num, DRAM_EMI_BASECLOCK_RATE_LP3,
+					DRAM_IO_BUS_WIDTH_LP3, DRAM_DATARATE);
+	} else
+		METERROR("[%s][%d]get_ddr_type_symbol = NULL , use the TYPE_LPDDR3 setting\n", __func__, __LINE__);
+
+
+	/* met_emi_clockrate */
+	if (get_dram_data_rate_symbol) {
+		dram_data_rate_MHz = get_dram_data_rate_symbol();
+	} else {
+		METERROR("get_dram_data_rate_symbol = NULL\n");
+		dram_data_rate_MHz = 0;
+	}
+
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: met_dram_clockrate: %d\n",
+			dram_data_rate_MHz);
+
+	/*dram bank num*/
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: met_dram_rank_num_header: %u,%u\n", MET_EMI_GetDramRankNum(),
+				MET_EMI_GetDramRankNum());
+#if 0
+	/* ms_emi header */
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"# ms_emi: TS0,TS1,GP0_WSCT,GP1_WSCT,GP2_WSCT,GP3_WSCT,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"M0_LATENCY,M1_LATENCY,M2_LATENCY,M3_LATENCY,M4_LATENCY,M5_LATENCY,M6_LATENCY,M7_LATENCY,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"M0_TRANS,M1_TRANS,M2_TRANS,M3_TRANS,M4_TRANS,M5_TRANS,M6_TRANS,M7_TRANS,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"BACT,BSCT,BCNT,WACT,DCM_CTRL,TACT,");
+
+	for (i = 0; i < dram_chann_num; i++) {
+		if (i != 0)
+			ret += snprintf(buf + ret, PAGE_SIZE - ret,
+					",");
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"PageHit_%d,PageMiss_%d,InterBank_%d,Idle_%d,", i, i, i, i);
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"mr4_%d,refresh_pop_%d,freerun_26m_%d,", i, i, i);
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"read_bytes_%d,write_bytes_%d", i, i);
+	}
+	ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
 #endif
 
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: met_emi_header: TS0,TS1,GP0_WSCT,GP1_WSCT,GP2_WSCT,GP3_WSCT,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"M0_LATENCY,M1_LATENCY,M2_LATENCY,M3_LATENCY,M4_LATENCY,M5_LATENCY,M6_LATENCY,M7_LATENCY,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"M0_TRANS,M1_TRANS,M2_TRANS,M3_TRANS,M4_TRANS,M5_TRANS,M6_TRANS,M7_TRANS,");
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"BACT,BSCT,BCNT,WACT,DCM_CTRL,TACT,");
+
+	for (i = 0; i < dram_chann_num; i++) {
+		if (i != 0)
+			ret += snprintf(buf + ret, PAGE_SIZE - ret,
+					",");
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"PageHit_%d,PageMiss_%d,InterBank_%d,Idle_%d,", i, i, i, i);
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"mr4_%d,refresh_pop_%d,freerun_26m_%d,", i, i, i);
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"read_bytes_%d,write_bytes_%d", i, i);
+	}
+	ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
+
+	/*TSCT header*/
+	if (emi_tsct_enable == 1) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"met-info [000] 0.0: ms_emi_tsct_header: ms_emi_tsct,");
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"tsct1,tsct2,tsct3\n");
+	}
+
+	/*MDCT header*/
+	if (emi_mdct_enable == 1) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"met-info [000] 0.0: ms_emi_mdct_header: ms_emi_mdct,");
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"RD_ULTRA,RD_MDMCU\n");
+	}
+
+	/* met_bw_limiter_header */
+	if (bw_limiter_enable == BM_BW_LIMITER_ENABLE) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"met-info [000] 0.0: met_bw_limiter_header: CLK,");
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"ARBA,ARBB,ARBC,ARBD,ARBE,ARBF,ARBG,ARBH,BWCT0,BWCT1,BWCT2,BWCT3,BWCT4,BWST0,BWST1,BWCT0_2ND,BWCT1_2ND,BWST_2ND\n");
+	}
+
+	/* DRAM DVFS header */
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: DRAM_DVFS_header: datarate(MHz)\n");
+
+	/*PDIR met_dramc_header*/
+	if (dramc_pdir_enable == 1 && DRAMC_VER >= 2 ) {
+		ret += snprintf(buf + ret, PAGE_SIZE - ret,
+				"met-info [000] 0.0: met_dramc_header: ");
+		for (i = 0; i < dram_chann_num; i++) {
+			if (i != 0)
+				ret += snprintf(buf + ret, PAGE_SIZE - ret,
+						",");
+			ret += snprintf(buf + ret, PAGE_SIZE - ret, "freerun_26m_%d,", i);
+			ret += snprintf(buf + ret, PAGE_SIZE - ret,
+					"rk0_pre_sb_%d,rk0_pre_pd_%d,rk0_act_sb_%d,rk0_act_pd_%d,", i, i, i, i);
+			ret += snprintf(buf + ret, PAGE_SIZE - ret,
+					"rk1_pre_sb_%d,rk1_pre_pd_%d,rk1_act_sb_%d,rk1_act_pd_%d,", i, i, i, i);
+			ret += snprintf(buf + ret, PAGE_SIZE - ret,
+					"rk2_pre_sb_%d,rk2_pre_pd_%d,rk2_act_sb_%d,rk2_act_pd_%d", i, i, i, i);
+		}
+		ret += snprintf(buf + ret, PAGE_SIZE - ret, "\n");
+	}
+
+	/* DRS header */
+	ret += snprintf(buf + ret, PAGE_SIZE - ret,
+			"met-info [000] 0.0: emi_drs_header: ch0_RANK1_GP(%%),ch0_RANK1_SF(%%),ch0_ALL_SF(%%),ch1_RANK1_GP(%%),ch1_RANK1_SF(%%),ch1_ALL_SF(%%)\n");
+#endif
 	return ret;
 }
 
