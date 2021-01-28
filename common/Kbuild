@@ -6,10 +6,10 @@ $(info ======== Build met.ko ... ========)
 MET_CORE := common
 obj-m := met.o
 
-ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.h),)
-    include $(MET_PLF_DIR)/Kbuild.platform.h
+ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.inc),)
+    include $(MET_PLF_DIR)/Kbuild.platform.inc
 else
-    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.h ========)
+    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.inc ========)
 endif
 
 ccflags-y += -DCONFIG_MET_MODULE
@@ -563,10 +563,10 @@ $(info ======== MET Built in ... ========)
 MET_DRV_DIR := ../../../../../vendor/mediatek/kernel_modules/met_drv/$(CONFIG_KERVER_VERSION)
 MET_CORE := $(MET_DRV_DIR)/common
 
-ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.h),)
-    include $(MET_PLF_DIR)/Kbuild.platform.h
+ifneq ($(wildcard $(MET_PLF_DIR)/Kbuild.platform.inc),)
+    include $(MET_PLF_DIR)/Kbuild.platform.inc
 else
-    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.h ========)
+    $(info ======= Missing $(MET_PLF_DIR)/Kbuild.platform.inc ========)
 endif
 
 ccflags-y += -DCONFIG_MET_MODULE
