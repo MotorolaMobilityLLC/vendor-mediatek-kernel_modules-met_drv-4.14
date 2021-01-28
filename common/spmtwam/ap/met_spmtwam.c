@@ -48,7 +48,7 @@ static unsigned int debug_signal_val;
 static struct twam_sig twamsig;
 static struct twam_sig montype;			/* b'00: rising, b'01: falling, b'10: high, b'11: low */
 static struct twam_sig dbgout;
-static int used_count;
+static unsigned int used_count;
 static int start;
 static bool twam_clock_mode = TWAM_SPEED_MODE;		/* true:speed mode, false:normal mode */
 static unsigned int window_len = 1300000;	/* 50 ms in 26 MHz */
@@ -78,6 +78,8 @@ static unsigned int idle_sel;
 	do { \
 		int i; \
 		i = snprintf(buf, PAGE_SIZE, "%d\n", dbgout.sig ## num); \
+		if (i < 0) \
+			return -1; \
 		return i; \
 	} while (0)
 
