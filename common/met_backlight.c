@@ -13,6 +13,14 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
+#ifdef CONFIG_LEDS_MTK_DISP
+#include "mtk_leds_drv.h"
+#include "leds-mtk-disp.h"
+#elif defined CONFIG_LEDS_MTK_PWM
+#include <mtk_leds_drv.h>
+#include <leds-mtk-pwm.h>
+#endif
+
 
 #define MET_USER_EVENT_SUPPORT
 #include "met_drv.h"
@@ -27,6 +35,30 @@ static ssize_t bl_tag_enable_store(struct kobject *kobj,
 				   struct kobj_attribute *attr, const char *buf, size_t n);
 static struct kobj_attribute bl_tag_enable_attr =
 __ATTR(backlight_tag_enable, 0664, bl_tag_enable_show, bl_tag_enable_store);
+
+#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM)
+static int led_brightness_changed_event(struct notifier_block *nb,
+					unsigned long event, void *v)
+{
+	struct led_classdev *led_cdev;
+
+	led_cdev = (struct led_classdev *)v;
+
+	switch (event) {
+	case 1:
+		output_met_backlight_tag_real(led_cdev->brightness);
+		break;
+	default:
+		break;
+	}
+
+	return NOTIFY_DONE;
+}
+
+static struct notifier_block leds_change_notifier = {
+	.notifier_call = led_brightness_changed_event,
+};
+#endif
 
 int enable_met_backlight_tag_real(void)
 {
@@ -72,6 +104,13 @@ static ssize_t bl_tag_enable_store(struct kobject *kobj,
 	if (value < 0)
 		return -EINVAL;
 
+#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM)
+	if (value == 1) {
+		mtk_leds_register_notifier(&leds_change_notifier);
+	} else if (value == 0) {
+		mtk_leds_unregister_notifier(&leds_change_notifier);
+	}
+#endif
 	met_backlight_enable = value;
 
 	return n;
