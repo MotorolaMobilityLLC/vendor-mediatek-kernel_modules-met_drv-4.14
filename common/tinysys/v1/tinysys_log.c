@@ -15,7 +15,9 @@
 #include <linux/uaccess.h>  /* copy_to_user */
 #include <asm/io.h>  /* for ioremap and iounmap */
 
+#include <linux/miscdevice.h>
 #include "interface.h"
+#include "core_plf_init.h"
 
 #include "tinysys_mgr.h"
 #include "tinysys_log.h"
@@ -133,13 +135,13 @@ int tinysys_log_manager_uninit(struct device *dev)
 	dbgfs_met_dir = dev_get_drvdata(dev);
 	if (dbgfs_met_dir) {
 		debugfs_remove_recursive(dbgfs_met_dir);
-		dev_set_drvdata(dev, NULL);
+		dev_set_drvdata(dev, met_device.this_device);
 	}
 #else
 	procfs_met_dir = dev_get_drvdata(dev);
 	if (procfs_met_dir) {
 		proc_remove(procfs_met_dir);
-		dev_set_drvdata(dev, NULL);
+		dev_set_drvdata(dev, met_device.this_device);
 	}
 #endif
 
