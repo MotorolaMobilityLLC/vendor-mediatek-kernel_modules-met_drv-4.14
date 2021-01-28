@@ -406,7 +406,7 @@ static void __exit met_drv_exit(void)
 		symbol_put(met_get_cpuinfo);
 
 	if (mt_get_chip_id_symbol)
-		symbol_put(mt_get_chip_id_symbol);
+		symbol_put(mt_get_chip_id);
 
 #ifdef MET_PLF_USE
 	core_plf_exit();
