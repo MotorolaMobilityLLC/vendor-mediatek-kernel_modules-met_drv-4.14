@@ -308,6 +308,8 @@ int sspm_log_stop(void)
 	}
 
 	req = kmalloc(sizeof(*req), GFP_KERNEL);
+	if (req == NULL)
+		return -1;
 	_sspm_log_req_init(req, SSPM_LOG_STOP, NULL, 0, _log_stop_cb, NULL);
 
 	init_completion(&log_start_comp);
@@ -329,6 +331,8 @@ int sspm_log_req_enq(
 {
 	struct sspm_log_req *req = kmalloc(sizeof(*req), GFP_KERNEL);
 
+	if (req == NULL)
+		return -1;
 	_sspm_log_req_init(req, SSPM_LOG_REQ, src, num, on_fini_cb, param);
 	return _sspm_log_req_enq(req);
 }
@@ -560,6 +564,9 @@ static int sspm_trace_seq_show(struct seq_file *seqf, void *p)
 
 	if (req->num >= seqf->size) {
 		l_req = kmalloc(sizeof(*req), GFP_KERNEL);
+		if (l_req == NULL)
+			return -1;
+
 		r_req = req;
 
 		l_sz = seqf->size >> 1;

@@ -305,6 +305,8 @@ static ssize_t sspm_ipi_supported_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", ipi_supported);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -318,6 +320,8 @@ static ssize_t sspm_buffer_size_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", sspm_buffer_size);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -331,6 +335,8 @@ static ssize_t sspm_available_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", 1);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -344,6 +350,8 @@ static ssize_t sspm_log_discard_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _sspm_log_discard);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -355,6 +363,10 @@ static ssize_t sspm_log_mode_show(struct device *dev, struct device_attribute *a
 	mutex_lock(&dev->mutex);
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _sspm_log_mode);
 	mutex_unlock(&dev->mutex);
+
+	if (i < 0)
+		return 0;
+
 	return i;
 }
 
@@ -368,6 +380,7 @@ static ssize_t sspm_log_mode_store(struct device *dev, struct device_attribute *
 	mutex_lock(&dev->mutex);
 	_sspm_log_mode = value;
 	mutex_unlock(&dev->mutex);
+
 	return count;
 }
 
@@ -380,6 +393,8 @@ static ssize_t sspm_log_size_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _sspm_log_size);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -411,6 +426,8 @@ static ssize_t sspm_run_mode_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _sspm_run_mode);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -468,6 +485,8 @@ static ssize_t sspm_modules_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "0x%X\n", ondiemet_module[ONDIEMET_SSPM]);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -576,6 +595,8 @@ static ssize_t _mcupm_ipi_supported_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", ipi_supported);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -589,6 +610,8 @@ static ssize_t _mcupm_buffer_size_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", mcupm_buffer_size);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -602,6 +625,8 @@ static ssize_t _mcupm_available_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", 1);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -615,6 +640,8 @@ static ssize_t _mcupm_log_discard_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_log_discard);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -628,6 +655,8 @@ static ssize_t _mcupm_log_size_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_log_size);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -659,6 +688,8 @@ static ssize_t _mcupm_run_mode_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_run_mode);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
@@ -716,6 +747,8 @@ static ssize_t _mcupm_modules_show(
 	int i = 0;
 
 	i = snprintf(buf, PAGE_SIZE, "0x%X\n", ondiemet_module[ONDIEMET_MCUPM]);
+	if (i < 0)
+		return 0;
 
 	return i;
 }
