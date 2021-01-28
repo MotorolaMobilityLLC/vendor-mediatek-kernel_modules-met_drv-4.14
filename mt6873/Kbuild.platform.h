@@ -41,4 +41,4 @@ EMI_LOWEFF_SUPPORT := y
 ################################################################################
 FEATURE_EVENT_POWER := n
 FEATURE_SPMTWAM := n
-FEATURE_ONDIEMET := n
+FEATURE_ONDIEMET := y
