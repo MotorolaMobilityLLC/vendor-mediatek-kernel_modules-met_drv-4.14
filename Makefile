@@ -1,6 +1,5 @@
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
-mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
-MET_ROOT_DIR := $(patsubst %/,%,$(dir $(mkfile_path)))
+MET_ROOT_DIR := $(src)
 MET_COMMON_DIR := $(wildcard $(MET_ROOT_DIR)/common)
 MET_PLF_DIR := $(wildcard $(MET_ROOT_DIR)/$(MTK_PLATFORM))
 MET_BUILD_DEFAULT := n
