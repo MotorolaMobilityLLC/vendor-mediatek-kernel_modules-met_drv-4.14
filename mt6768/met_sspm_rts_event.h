@@ -55,7 +55,7 @@ MET_SSPM_RTS_EVNET(SSPM_SWPM_CORE__DVFS, "vcore,cam_freq,img_freq,ipe_freq,dpe_f
 MET_SSPM_RTS_EVNET(SSPM_SWPM_CORE__POWER, "cam,img,ipe,mdp,disp,adsp,venc,vdec,dramc,infra_top,aphy_vcore")
 MET_SSPM_RTS_EVNET(SSPM_SWPM_DRAM__MEM_IDX, "read_bw,write_bw,srr_pct,pdir_pct,phr_pct,acc_util,mr4")
 MET_SSPM_RTS_EVNET(SSPM_SWPM_DRAM__DVFS, "ddr_freq")
-MET_SSPM_RTS_EVNET(SSPM_SWPM_DRAM__POWER, "aphy_vddq_0p6v,aphy_vm_0p75v,aphy_vio_1p2v,aphy_vio_1p8v,dram_vddq_0p6v,dram_vdd2_1p1v,dram_vdd1_1p8v")
+MET_SSPM_RTS_EVNET(SSPM_SWPM_DRAM__POWER, "aphy_vddq_0p6v,aphy_vm_1p1v,aphy_vio_1p8v,dram_vddq_0p6v,dram_vdd2_1p1v,dram_vdd1_1p8v")
 MET_SSPM_RTS_EVNET(SSPM_SWPM_VPU__VPU0_STATE_RATIO, "active,idle,off")
 MET_SSPM_RTS_EVNET(SSPM_SWPM_VPU__VPU1_STATE_RATIO, "active,idle,off")
 MET_SSPM_RTS_EVNET(SSPM_SWPM_VPU__DVFS, "vvpu,vpu0_freq,vpu1_freq")
