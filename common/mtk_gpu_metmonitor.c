@@ -267,9 +267,9 @@ static unsigned long gpu_dvfs_type_freq_prev;
 static unsigned int gpu_dvfs_type_freq[ARRAY_SIZE(gpu_dvfs_type_name)];
 
 noinline void GPU_DVFS(unsigned int Freq, unsigned int ThermalLimit,
-			unsigned long CustomBoost, unsigned long CustomUpbound)
+			unsigned int CustomBoost, unsigned int CustomUpbound)
 {
-	MET_TRACE("%u,%u,%lu,%lu\n", Freq, ThermalLimit, CustomBoost, CustomUpbound);
+	MET_TRACE("%u,%u,%u,%u\n", Freq, ThermalLimit, CustomBoost, CustomUpbound);
 }
 
 noinline void GPU_DVFS_TYPE(void)
@@ -297,8 +297,8 @@ static void gpu_dvfs(void)
 	unsigned int		ThermalLimit = 0;
 	MTK_GPU_DVFS_TYPE	peType;
 	unsigned long		pulFreq = 0;
-	unsigned long		CustomBoost = 0;
-	unsigned long		CustomUpbound = 0;
+	unsigned int		CustomBoost = 0;
+	unsigned int		CustomUpbound = 0;
 	unsigned int		event_status = 0;
 	unsigned int		debug_status = 0;
 

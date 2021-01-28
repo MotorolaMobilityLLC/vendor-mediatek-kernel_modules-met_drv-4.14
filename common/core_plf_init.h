@@ -55,8 +55,8 @@ extern bool (*mtk_get_gpu_sub_loading_symbol)(unsigned int *pLoading);
 extern bool (*mtk_get_3D_fences_count_symbol)(int *pi32Count);
 extern bool (*mtk_get_gpu_memory_usage_symbol)(unsigned int *pMemUsage);
 extern bool (*mtk_get_gpu_power_loading_symbol)(unsigned int *pLoading);
-extern bool (*mtk_get_custom_boost_gpu_freq_symbol)(unsigned long *pulFreq);
-extern bool (*mtk_get_custom_upbound_gpu_freq_symbol)(unsigned long *pulFreq);
+extern bool (*mtk_get_custom_boost_gpu_freq_symbol)(unsigned int *pulFreq);
+extern bool (*mtk_get_custom_upbound_gpu_freq_symbol)(unsigned int *pulFreq);
 extern bool (*mtk_get_vsync_based_target_freq_symbol)(unsigned long *pulFreq);
 extern bool (*mtk_get_vsync_offset_event_status_symbol)(unsigned int *pui32EventStatus);
 extern bool (*mtk_get_vsync_offset_debug_status_symbol)(unsigned int *pui32EventStatus);
@@ -148,7 +148,7 @@ extern int get_ddr_type(void);
 extern void *(*mt_cen_emi_base_get_symbol)(void);
 extern unsigned int (*mtk_dramc_get_data_rate_symbol)(void); /* in Mhz */
 extern unsigned int (*mtk_dramc_get_ddr_type_symbol)(void);
-extern unsigned int (*get_cur_ddr_ratio_symbol)(void);
+extern int (*get_cur_ddr_ratio_symbol)(void);
 /* legacy emi api before mt6885 */
 extern unsigned int (*get_dram_data_rate_symbol)(void); /* in Mhz */
 extern int (*get_ddr_type_symbol)(void);
