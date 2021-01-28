@@ -24,9 +24,9 @@
 #include "mt-plat/mtk_tinysys_ipi.h"  /* for mtk_ipi_device */
 #include "mcupm_ipi_id.h"  /* for mcupm_ipidev */
 
-#include "cpu_eb_met_log.h"
-#include "cpu_eb_met_ipi_handle.h"
-#include "tinysys_cpu_eb.h" /* for mcupm_ipidev_symbol */
+#include "mcupm_met_log.h"
+#include "mcupm_met_ipi_handle.h"
+#include "tinysys_mcupm.h" /* for mcupm_ipidev_symbol */
 #include "tinysys_mgr.h" /* for ondiemet_module */
 #include "interface.h"
 #include "core_plf_init.h"
@@ -53,13 +53,13 @@ extern char *met_get_platform(void);
  * internal function declaration
  *****************************************************************************/
 static void _log_done_cb(const void *p);
-static int _cpu_eb_recv_thread(void *data);
+static int _mcupm_recv_thread(void *data);
 
 
 /*****************************************************************************
  * external variable declaration
  *****************************************************************************/
-int cpu_eb_buf_available;
+int mcupm_buf_available;
 
 
 /*****************************************************************************
@@ -71,17 +71,17 @@ static unsigned int rdata;
 static unsigned int ackdata;
 static unsigned int ridx, widx, wlen;
 static unsigned int log_size;
-static struct task_struct *_cpu_eb_recv_task;
-static int cpu_eb_ipi_thread_started;
-static int cpu_eb_buffer_dumping;
-static int cpu_eb_recv_thread_comp;
-static int cpu_eb_run_mode = CPU_EB_RUN_NORMAL;
+static struct task_struct *_mcupm_recv_task;
+static int mcupm_ipi_thread_started;
+static int mcupm_buffer_dumping;
+static int mcupm_recv_thread_comp;
+static int mcupm_run_mode = MCUPM_RUN_NORMAL;
 
 
 /*****************************************************************************
  * internal function ipmlement
  *****************************************************************************/
-void start_cpu_eb_ipi_recv_thread()
+void start_mcupm_ipi_recv_thread()
 {
 	int ret = 0;
 
@@ -112,24 +112,28 @@ void start_cpu_eb_ipi_recv_thread()
 		PR_BOOTMSG("mtk_ipi_register IPIS_C_MET success \n");
 	}
 
-	if (cpu_eb_ipi_thread_started != 1) {
-		cpu_eb_recv_thread_comp = 0;
-		_cpu_eb_recv_task = kthread_run(_cpu_eb_recv_thread,
-						NULL, "cpu_ebcpu_eb_recv");
-		if (IS_ERR(_cpu_eb_recv_task)) {
-			PR_BOOTMSG("Can not create cpu_ebcpu_eb_recv\n");
+	if (mcupm_ipi_thread_started != 1) {
+		mcupm_recv_thread_comp = 0;
+		_mcupm_recv_task = kthread_run(_mcupm_recv_thread,
+						NULL, "mcupmmcupm_recv");
+		if (IS_ERR(_mcupm_recv_task)) {
+			PR_BOOTMSG("Can not create mcupmmcupm_recv\n");
 
 		} else {
-			cpu_eb_ipi_thread_started = 1;
+			mcupm_ipi_thread_started = 1;
 		}
 	}
 }
 
 
-void stop_cpu_eb_ipi_recv_thread()
+void stop_mcupm_ipi_recv_thread()
 {
-	if (_cpu_eb_recv_task) {
-		cpu_eb_recv_thread_comp = 1;
+	if (_mcupm_recv_task) {
+		mcupm_recv_thread_comp = 1;
+
+		kthread_stop(_mcupm_recv_task);
+		_mcupm_recv_task = NULL;
+		mcupm_ipi_thread_started = 0;
 
 		if (mcupm_ipidev_symbol) {
 			// Tinysys send ipi to APSYS
@@ -137,15 +141,11 @@ void stop_cpu_eb_ipi_recv_thread()
 			// APSYS send ipi to Tinysys
 			mtk_ipi_unregister(mcupm_ipidev_symbol, IPIS_C_MET);
 		}
-
-		kthread_stop(_cpu_eb_recv_task);
-		_cpu_eb_recv_task = NULL;
-		cpu_eb_ipi_thread_started = 0;
 	}
 }
 
 
-void cpu_eb_start(void)
+void mcupm_start(void)
 {
 	int ret = 0;
 	unsigned int rdata = 0;
@@ -154,8 +154,8 @@ void cpu_eb_start(void)
 	unsigned int platform_id = 0;
 
 	/* clear DRAM buffer */
-	if (cpu_eb_log_virt_addr != NULL) {
-		memset_io((void *)cpu_eb_log_virt_addr, 0, cpu_eb_buffer_size);
+	if (mcupm_log_virt_addr != NULL) {
+		memset_io((void *)mcupm_log_virt_addr, 0, mcupm_buffer_size);
 	} else {
 		return;
 	}
@@ -171,7 +171,7 @@ void cpu_eb_start(void)
 
 	/* send DRAM physical address */
 	ipi_buf[0] = MET_MAIN_ID | MET_BUFFER_INFO;
-	ipi_buf[1] = (unsigned int)cpu_eb_log_phy_addr; /* address */
+	ipi_buf[1] = (unsigned int)mcupm_log_phy_addr; /* address */
 	if (ret == 0) {
 		ipi_buf[2] = platform_id;
 	} else {
@@ -179,18 +179,18 @@ void cpu_eb_start(void)
 	}
 
 	ipi_buf[3] = 0;
-	ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 4, &rdata, 1);
+	ret = met_ipi_to_mcupm_command((void *)ipi_buf, 4, &rdata, 1);
 
 	/* start ondiemet now */
 	ipi_buf[0] = MET_MAIN_ID | MET_OP | MET_OP_START;
-	ipi_buf[1] = ondiemet_module[ONDIEMET_CPU_EB] ;
-	ipi_buf[2] = CPU_EB_LOG_FILE;
-	ipi_buf[3] = CPU_EB_RUN_NORMAL;
-	ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 4, &rdata, 1);
+	ipi_buf[1] = ondiemet_module[ONDIEMET_MCUPM] ;
+	ipi_buf[2] = MCUPM_LOG_FILE;
+	ipi_buf[3] = MCUPM_RUN_NORMAL;
+	ret = met_ipi_to_mcupm_command((void *)ipi_buf, 4, &rdata, 1);
 }
 
 
-void cpu_eb_stop(void)
+void mcupm_stop(void)
 {
 	int ret = 0;
 	unsigned int rdata = 0;
@@ -198,17 +198,17 @@ void cpu_eb_stop(void)
 	unsigned int chip_id = 0;
 
 	chip_id = met_get_chip_id();
-	if (cpu_eb_buf_available == 1) {
+	if (mcupm_buf_available == 1) {
 		ipi_buf[0] = MET_MAIN_ID | MET_OP | MET_OP_STOP;
 		ipi_buf[1] = chip_id;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 4, &rdata, 1);
+		ret = met_ipi_to_mcupm_command((void *)ipi_buf, 4, &rdata, 1);
 	}
 }
 
 
-void cpu_eb_extract(void)
+void mcupm_extract(void)
 {
 	int ret;
 	unsigned int rdata;
@@ -216,8 +216,8 @@ void cpu_eb_extract(void)
 	int count;
 
 	count = 20;
-	if (cpu_eb_buf_available == 1) {
-		while ((cpu_eb_buffer_dumping == 1) && (count != 0)) {
+	if (mcupm_buf_available == 1) {
+		while ((mcupm_buffer_dumping == 1) && (count != 0)) {
 			msleep(50);
 			count--;
 		}
@@ -225,29 +225,29 @@ void cpu_eb_extract(void)
 		ipi_buf[1] = 0;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 4, &rdata, 1);
+		ret = met_ipi_to_mcupm_command((void *)ipi_buf, 4, &rdata, 1);
 
 	}
 }
 
 
-void cpu_eb_flush(void)
+void mcupm_flush(void)
 {
 	int ret;
 	unsigned int rdata;
 	unsigned int ipi_buf[4];
 
-	if (cpu_eb_buf_available == 1) {
+	if (mcupm_buf_available == 1) {
 		ipi_buf[0] = MET_MAIN_ID | MET_OP | MET_OP_FLUSH;
 		ipi_buf[1] = 0;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 4, &rdata, 1);
+		ret = met_ipi_to_mcupm_command((void *)ipi_buf, 4, &rdata, 1);
 	}
 }
 
 
-int met_ipi_to_cpu_eb_command(
+int met_ipi_to_mcupm_command(
 	unsigned int *buffer,
 	int slot,
 	unsigned int *retbuf,
@@ -263,15 +263,15 @@ int met_ipi_to_cpu_eb_command(
 		IPI_SEND_WAIT, (void*)buffer, slot, 2000);
 	*retbuf = ackdata;
 	if (ret != 0) {
-		PR_BOOTMSG("met_ipi_to_cpu_eb_command error(%d)\n", ret);
+		PR_BOOTMSG("met_ipi_to_mcupm_command error(%d)\n", ret);
 	}
 
 	return ret;
 }
-EXPORT_SYMBOL(met_ipi_to_cpu_eb_command);
+EXPORT_SYMBOL(met_ipi_to_mcupm_command);
 
 
-int met_ipi_to_cpu_eb_command_async(
+int met_ipi_to_mcupm_command_async(
 	unsigned int *buffer,
 	int slot,
 	unsigned int *retbuf,
@@ -287,12 +287,12 @@ int met_ipi_to_cpu_eb_command_async(
 	*retbuf = ackdata;
 
 	if (ret != 0) {
-		PR_BOOTMSG("met_ipi_to_cpu_eb_command_async error(%d)\n", ret);
+		PR_BOOTMSG("met_ipi_to_mcupm_command_async error(%d)\n", ret);
 	}
 
 	return ret;
 }
-EXPORT_SYMBOL(met_ipi_to_cpu_eb_command_async);
+EXPORT_SYMBOL(met_ipi_to_mcupm_command_async);
 
 
 /*****************************************************************************
@@ -306,18 +306,18 @@ static void _log_done_cb(const void *p)
 	unsigned int opt = (p != NULL);
 
 	if (opt == 0) {
-		cpu_eb_buffer_dumping = 0;
+		mcupm_buffer_dumping = 0;
 
 		ipi_buf[0] = MET_MAIN_ID | MET_RESP_AP2MD;
 		ipi_buf[1] = MET_DUMP_BUFFER;
 		ipi_buf[2] = 0;
 		ipi_buf[3] = 0;
-		ret = met_ipi_to_cpu_eb_command((void *)ipi_buf, 0, &rdata, 1);
+		ret = met_ipi_to_mcupm_command((void *)ipi_buf, 0, &rdata, 1);
 	}
 }
 
 
-static int _cpu_eb_recv_thread(void *data)
+static int _mcupm_recv_thread(void *data)
 {
 	int ret = 0;
 	unsigned int cmd = 0;
@@ -327,7 +327,7 @@ static int _cpu_eb_recv_thread(void *data)
 		if (ret) {
 			PR_BOOTMSG("ipi_register:%d failed:%d\n", IPIR_C_MET, ret);
 		}
-		if (cpu_eb_recv_thread_comp == 1) {
+		if (mcupm_recv_thread_comp == 1) {
 			while (!kthread_should_stop()) {
 				;
 			}
@@ -337,19 +337,19 @@ static int _cpu_eb_recv_thread(void *data)
 		cmd = recv_buf[0] & MET_SUB_ID_MASK;
 		switch (cmd) {
 		case MET_DUMP_BUFFER:	/* mbox 1: start index; 2: size */
-			cpu_eb_buffer_dumping = 1;
+			mcupm_buffer_dumping = 1;
 			ridx = recv_buf[1];
 			widx = recv_buf[2];
 			log_size = recv_buf[3];
 			if (widx < ridx) {	/* wrapping occurs */
 				wlen = log_size - ridx;
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr) + (ridx << 2),
 						wlen * 4, _log_done_cb, (void *)1);
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr),
 						widx * 4, _log_done_cb, (void *)0);
 			} else {
 				wlen = widx - ridx;
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr) + (ridx << 2),
 						wlen * 4, _log_done_cb, (void *)0);
 			}
 			break;
@@ -359,22 +359,22 @@ static int _cpu_eb_recv_thread(void *data)
 			widx = recv_buf[2];
 			if (widx < ridx) {	/* wrapping occurs */
 				wlen = log_size - ridx;
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr) + (ridx << 2),
 						wlen * 4, _log_done_cb, (void *)1);
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr),
 						widx * 4, _log_done_cb, (void *)1);
 			} else {
 				wlen = widx - ridx;
-				cpu_eb_log_req_enq((char *)(cpu_eb_log_virt_addr) + (ridx << 2),
+				mcupm_log_req_enq((char *)(mcupm_log_virt_addr) + (ridx << 2),
 						wlen * 4, _log_done_cb, (void *)1);
 			}
-			ret = cpu_eb_log_stop();
-			if (cpu_eb_run_mode == CPU_EB_RUN_CONTINUOUS) {
+			ret = mcupm_log_stop();
+			if (mcupm_run_mode == MCUPM_RUN_CONTINUOUS) {
 				/* clear the memory */
-				memset_io((void *)cpu_eb_log_virt_addr, 0,
-					  cpu_eb_buffer_size);
+				memset_io((void *)mcupm_log_virt_addr, 0,
+					  mcupm_buffer_size);
 				/* re-start ondiemet again */
-				cpu_eb_start();
+				mcupm_start();
 			}
 			break;
 

@@ -13,7 +13,19 @@
 /*****************************************************************************
  * define declaration
  *****************************************************************************/
-#define ONDIEMET_NUM (FEATURE_SSPM_NUM + FEATURE_CPU_EB_NUM + FEATURE_SCP_NUM)
+#ifndef FEATURE_SSPM_NUM
+#define FEATURE_SSPM_NUM 1
+#endif
+
+#ifndef FEATURE_MCUPM_NUM
+#define FEATURE_MCUPM_NUM 1
+#endif
+
+#ifndef FEATURE_SCP_NUM
+#define FEATURE_SCP_NUM 0
+#endif
+
+#define ONDIEMET_NUM (FEATURE_SSPM_NUM + FEATURE_MCUPM_NUM + FEATURE_SCP_NUM)
 
 
 /*****************************************************************************
@@ -21,7 +33,7 @@
  *****************************************************************************/
 enum {
     ONDIEMET_SSPM,
-    ONDIEMET_CPU_EB,
+    ONDIEMET_MCUPM,
     ONDIEMET_SCP,
 };
 

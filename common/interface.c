@@ -1416,9 +1416,9 @@ int fs_reg(int met_minor)
 #endif
 
 	met_register(&met_dummy_header);
-#ifdef FEATURE_CPU_EB_NUM
-#if FEATURE_CPU_EB_NUM
-	met_register(&met_cpu_eb);
+#ifdef FEATURE_MCUPM_NUM
+#if FEATURE_MCUPM_NUM
+	met_register(&met_mcupm);
 #endif
 #endif
 
@@ -1455,9 +1455,9 @@ void fs_unreg(void)
 	tag_unreg();
 #endif
 
-#ifdef FEATURE_CPU_EB_NUM
-#if FEATURE_CPU_EB_NUM
-	met_deregister(&met_cpu_eb);
+#ifdef FEATURE_MCUPM_NUM
+#if FEATURE_MCUPM_NUM
+	met_deregister(&met_mcupm);
 #endif
 #endif
 

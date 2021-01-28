@@ -2,8 +2,8 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
  */
-#ifndef __CPU_EB_MET_LOG_H__
-#define __CPU_EB_MET_LOG_H__
+#ifndef __MCUPM_MET_LOG_H__
+#define __MCUPM_MET_LOG_H__
 /*****************************************************************************
  * headers
  *****************************************************************************/
@@ -26,27 +26,27 @@
 /*****************************************************************************
  * external function declaration
  *****************************************************************************/
-int cpu_eb_log_init(struct device *dev);
-int cpu_eb_log_uninit(struct device *dev);
-int cpu_eb_log_start(void);
-int cpu_eb_log_stop(void);
+int mcupm_log_init(struct device *dev);
+int mcupm_log_uninit(struct device *dev);
+int mcupm_log_start(void);
+int mcupm_log_stop(void);
 
-int cpu_eb_log_req_enq(
+int mcupm_log_req_enq(
 	const char *src, size_t num,
 	void (*on_fini_cb)(const void *p),
 	const void *param);
-int cpu_eb_parse_num(const char *str, unsigned int *value, int len);
+int mcupm_parse_num(const char *str, unsigned int *value, int len);
 
 
 /*****************************************************************************
  * external variable declaration
  *****************************************************************************/
-extern void *cpu_eb_log_virt_addr;
+extern void *mcupm_log_virt_addr;
 #if defined(CONFIG_MTK_GMO_RAM_OPTIMIZE) || defined(CONFIG_MTK_MET_MEM_ALLOC)
-extern dma_addr_t cpu_eb_log_phy_addr;
+extern dma_addr_t mcupm_log_phy_addr;
 #else
-extern unsigned int cpu_eb_log_phy_addr;
+extern unsigned int mcupm_log_phy_addr;
 #endif
-extern unsigned int cpu_eb_buffer_size;
+extern unsigned int mcupm_buffer_size;
 
-#endif	/* __CPU_EB_MET_LOG_H__ */
+#endif	/* __MCUPM_MET_LOG_H__ */

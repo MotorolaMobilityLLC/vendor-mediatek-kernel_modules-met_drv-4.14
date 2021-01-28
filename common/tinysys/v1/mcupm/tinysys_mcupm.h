@@ -2,8 +2,8 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
  */
-#ifndef __TINYSYS_CPU_EB_H__
-#define __TINYSYS_CPU_EB_H__
+#ifndef __TINYSYS_MCUPM_H__
+#define __TINYSYS_MCUPM_H__
 /*****************************************************************************
  * headers
  *****************************************************************************/
@@ -73,12 +73,12 @@
 #define ID_SMI                  (1 << MID_SMI)
 #define ID_PMU                  (1 << MID_PMU)
 
-#define CPU_EB_LOG_FILE           0
-#define CPU_EB_LOG_SRAM           1
-#define CPU_EB_LOG_DRAM           2
+#define MCUPM_LOG_FILE           0
+#define MCUPM_LOG_SRAM           1
+#define MCUPM_LOG_DRAM           2
 
-#define CPU_EB_RUN_NORMAL         0
-#define CPU_EB_RUN_CONTINUOUS     1
+#define MCUPM_RUN_NORMAL         0
+#define MCUPM_RUN_CONTINUOUS     1
 
 
 /*****************************************************************************
@@ -109,10 +109,7 @@ enum {
 	MID_SMI = 19,
 	MID_PMU = 20,
 
-	MID_EB_CPU_PMU = 21,
-	MID_EB_SENSOR_NETWORK = 22,
-	MID_EB_SYSTEM_PI = 23,
-	MID_EB_PTPOD = 24,
+	MID_MCUPM_CPU_PMU = 21,
 
 	MID_COMMON = 0x1F
 };
@@ -124,4 +121,4 @@ enum {
 extern struct mtk_ipi_device *mcupm_ipidev_symbol;
 
 
-#endif /* __TINYSYS_CPU_EB_H__ */
+#endif /* __TINYSYS_MCUPM_H__ */

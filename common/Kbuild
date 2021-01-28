@@ -43,6 +43,12 @@ met-y := $(MET_CORE)/met_main.o \
     $(MET_CORE)/core_plf_init.o \
     $(MET_CORE)/core_plf_trace.o
 
+ifeq ($(FEATURE_ONDIEMET), y)
+    met-y += $(MET_CORE)/ondiemet.o
+    met-y += $(MET_CORE)/ondiemet_log.o
+    met-y += $(MET_CORE)/sspm/ondiemet_sspm.o
+endif
+
 CFLAGS_interface.o += -DMET_USER_EVENT_SUPPORT
 CFLAGS_met_tag_ex.o += -DMET_USER_EVENT_SUPPORT
 
@@ -370,10 +376,6 @@ ifneq ($(FEATURE_ONDIEMET), n)
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
-
-        met-y += $(MET_CORE)/ondiemet.o
-        met-y += $(MET_CORE)/ondiemet_log.o
-        met-y += $(MET_CORE)/sspm/ondiemet_sspm.o
         met-y += $(MET_CORE)/sspm/sspm_ipi_handle.o
         met-y += $(MET_CORE)/sspm/sspm_common.o
         ccflags-y += -DMTK_TINYSYS_SSPM_SUPPORT
@@ -454,7 +456,7 @@ ifeq ($(FEATURE_TINYSYS),y)
         $(info CONFIG_MTK_TINYSYS_MCUPM_SUPPORT = y)
     else
         $(info CONFIG_MTK_TINYSYS_MCUPM_SUPPORT = n)
-        FEATURE_CPU_EB_NUM := 0
+        FEATURE_MCUPM_NUM := 0
     endif
     ifeq ($(CONFIG_MTK_TINYSYS_SCP_SUPPORT),y)
         $(info CONFIG_MTK_TINYSYS_SCP_SUPPORT = y)
@@ -474,17 +476,17 @@ ifeq ($(FEATURE_TINYSYS),y)
     ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)
 
     ccflags-y += -DFEATURE_SSPM_NUM=$(FEATURE_SSPM_NUM)
-    ccflags-y += -DFEATURE_CPU_EB_NUM=$(FEATURE_CPU_EB_NUM)
+    ccflags-y += -DFEATURE_MCUPM_NUM=$(FEATURE_MCUPM_NUM)
     ccflags-y += -DFEATURE_SCP_NUM=$(FEATURE_SCP_NUM)
 
-    ifneq ($(FEATURE_CPU_EB_NUM),0)
-        $(info FEATURE_CPU_EB_NUM = $(FEATURE_CPU_EB_NUM))
-        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met.o
-        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met_log.o
-        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met_ipi_handle.o
-        ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)/cpu_eb/
+    ifneq ($(FEATURE_MCUPM_NUM),0)
+        $(info FEATURE_MCUPM_NUM = $(FEATURE_MCUPM_NUM))
+        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met.o
+        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met_log.o
+        met-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met_ipi_handle.o
+        ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)/mcupm/
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/$(MTK_PLATFORM)
-        ccflags-y += -DTINYSYS_CPU_EB_SUPPORT
+        ccflags-y += -DTINYSYS_MUCPM_SUPPORT
     endif
 
     ifneq ($(FEATURE_SCP_NUM),0)
@@ -963,7 +965,7 @@ ifeq ($(FEATURE_TINYSYS),y)
         $(info CONFIG_MTK_TINYSYS_MCUPM_SUPPORT = y)
     else
         $(info CONFIG_MTK_TINYSYS_MCUPM_SUPPORT = n)
-        FEATURE_CPU_EB_NUM := 0
+        FEATURE_MCUPM_NUM := 0
     endif
     ifeq ($(CONFIG_MTK_TINYSYS_SCP_SUPPORT),y)
         $(info CONFIG_MTK_TINYSYS_SCP_SUPPORT = y)
@@ -983,17 +985,17 @@ ifeq ($(FEATURE_TINYSYS),y)
     ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)
 
     ccflags-y += -DFEATURE_SSPM_NUM=$(FEATURE_SSPM_NUM)
-    ccflags-y += -DFEATURE_CPU_EB_NUM=$(FEATURE_CPU_EB_NUM)
+    ccflags-y += -DFEATURE_MCUPM_NUM=$(FEATURE_MCUPM_NUM)
     ccflags-y += -DFEATURE_SCP_NUM=$(FEATURE_SCP_NUM)
 
-    ifneq ($(FEATURE_CPU_EB_NUM),0)
-        $(info FEATURE_CPU_EB_NUM = $(FEATURE_CPU_EB_NUM))
-        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met.o
-        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met_log.o
-        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/cpu_eb/cpu_eb_met_ipi_handle.o
-        ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)/cpu_eb/
+    ifneq ($(FEATURE_MCUPM_NUM),0)
+        $(info FEATURE_MCUPM_NUM = $(FEATURE_MCUPM_NUM))
+        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met.o
+        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met_log.o
+        obj-y += $(MET_CORE)/tinysys/$(TINYSYS_VERSION)/mcupm/mcupm_met_ipi_handle.o
+        ccflags-y += -I$(MET_COMMON_DIR)/tinysys/$(TINYSYS_VERSION)/mcupm/
         ccflags-y += -I$(srctree)/drivers/misc/mediatek/mcupm/$(MTK_PLATFORM)
-        ccflags-y += -DTINYSYS_CPU_EB_SUPPORT
+        ccflags-y += -DTINYSYS_MUCPM_SUPPORT
     endif
 
     ifneq ($(FEATURE_SCP_NUM),0)

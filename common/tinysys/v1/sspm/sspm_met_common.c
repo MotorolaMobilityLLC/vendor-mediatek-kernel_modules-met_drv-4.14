@@ -8,6 +8,7 @@
 #include <linux/string.h>
 #include <linux/slab.h>
 #include <linux/kernel.h>
+#include <linux/module.h> /* for symbol_get */
 
 #include "met_drv.h"
 #include "tinysys_sspm.h"
@@ -51,8 +52,11 @@ static int ondiemet_sspm_print_header(char *buf, int len);
 
 
 /*****************************************************************************
- * external variable declaration
+ * external function declaration
  *****************************************************************************/
+unsigned int update_sspm_met_evnet_header(
+	void* met_evnet_header,
+	unsigned int cur_met_rts_event_num);
 
 
 /*****************************************************************************
@@ -62,6 +66,7 @@ static unsigned int event_id_flag[MAX_MET_RTS_EVENT_NUM / 32];
 static char *update_rts_event_tbl[MAX_MET_RTS_EVENT_NUM];
 static char sspm_help[] = "  --sspm_common=rts_event_name\n";
 static char header[] = 	"met-info [000] 0.0: sspm_common_header: ";
+static unsigned int additional_rts_cnt = 0;
 
 static struct sspm_met_evnet_header met_evnet_header[MAX_MET_RTS_EVENT_NUM] = {
 	#ifdef MET_SSPM_RTS_EVNET
@@ -112,7 +117,7 @@ static int ondiemet_sspm_print_header(char *buf, int len)
 		is_dump_header = 1;
 	}
 
-	for (i = read_idx; i < CUR_MET_RTS_EVENT_NUM; i++) {
+	for (i = read_idx; i < CUR_MET_RTS_EVENT_NUM + additional_rts_cnt; i++) {
 		if (met_evnet_header[i].chart_line_name) {
 			group = i / 32;
 			mask = 1 << (i - group * 32);
@@ -135,11 +140,11 @@ static int ondiemet_sspm_print_header(char *buf, int len)
 		}
 	}
 
-	if (i == CUR_MET_RTS_EVENT_NUM) {
+	if (i == CUR_MET_RTS_EVENT_NUM + additional_rts_cnt) {
 		is_dump_header = 0;
 		read_idx = 0;
 		buf[len - 1] = '\n';
-		for (i = 0; i < CUR_MET_RTS_EVENT_NUM; i++) {
+		for (i = 0; i < CUR_MET_RTS_EVENT_NUM + additional_rts_cnt; i++) {
 			if (update_rts_event_tbl[i]) {
 				kfree(update_rts_event_tbl[i]);
 				update_rts_event_tbl[i] = NULL;
@@ -212,6 +217,13 @@ static int ondiemet_sspm_process_argument(const char *arg, int len)
 	int res = 0;
 	char *line = NULL;
 	char *token = NULL;
+	unsigned int (*update_sspm_met_evnet_header_sym)(void*, unsigned int) = NULL;
+
+	update_sspm_met_evnet_header_sym = symbol_get(update_sspm_met_evnet_header);
+	if (update_sspm_met_evnet_header_sym) {
+		additional_rts_cnt = update_sspm_met_evnet_header_sym(met_evnet_header,
+			CUR_MET_RTS_EVENT_NUM);
+	}
 
 	for (i = 0; met_evnet_header[i].rts_event_name && i < MAX_MET_RTS_EVENT_NUM; i++) {
 		if (strcmp(met_evnet_header[i].rts_event_name, arg) == 0) {

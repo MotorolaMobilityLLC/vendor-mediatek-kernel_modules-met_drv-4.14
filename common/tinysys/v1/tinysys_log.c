@@ -28,9 +28,9 @@
 #include "sspm/sspm_met_log.h"
 #endif
 
-#if FEATURE_CPU_EB_NUM
+#if FEATURE_MCUPM_NUM
 #include "mcupm_driver.h"
-#include "cpu_eb/cpu_eb_met_log.h"
+#include "mcupm/mcupm_met_log.h"
 #endif
 
 
@@ -73,8 +73,8 @@ static void _reset(int status, int type);
 static unsigned int _g_sspm_status;
 #endif
 
-#if FEATURE_CPU_EB_NUM
-static unsigned int _g_cpu_eb_status;
+#if FEATURE_MCUPM_NUM
+static unsigned int _g_mcupm_status;
 #endif
 
 
@@ -107,8 +107,8 @@ int tinysys_log_manager_init(struct device *dev)
 	sspm_log_init(dev);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_log_init(dev);
+#if FEATURE_MCUPM_NUM
+	mcupm_log_init(dev);
 #endif
 
 	return 0;
@@ -127,8 +127,8 @@ int tinysys_log_manager_uninit(struct device *dev)
 	sspm_log_uninit(dev);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_log_uninit(dev);
+#if FEATURE_MCUPM_NUM
+	mcupm_log_uninit(dev);
 #endif
 
 #ifdef ONDIEMET_MOUNT_DEBUGFS
@@ -156,9 +156,9 @@ int tinysys_log_manager_start(void)
 	_reset(kTINYSYS_LOG_START, ONDIEMET_SSPM);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_log_start();
-	_reset(kTINYSYS_LOG_START, ONDIEMET_CPU_EB);
+#if FEATURE_MCUPM_NUM
+	mcupm_log_start();
+	_reset(kTINYSYS_LOG_START, ONDIEMET_MCUPM);
 #endif
 
 	return 0;
@@ -172,9 +172,9 @@ int tinysys_log_manager_stop(void)
 	_reset(kTINYSYS_LOG_STOP, ONDIEMET_SSPM);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_log_stop();
-	_reset(kTINYSYS_LOG_STOP, ONDIEMET_CPU_EB);
+#if FEATURE_MCUPM_NUM
+	mcupm_log_stop();
+	_reset(kTINYSYS_LOG_STOP, ONDIEMET_MCUPM);
 #endif
 
 	return 0;
@@ -193,9 +193,9 @@ static void _reset(int status, int type)
 		break;
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	case ONDIEMET_CPU_EB:
-		_g_cpu_eb_status = status;
+#if FEATURE_MCUPM_NUM
+	case ONDIEMET_MCUPM:
+		_g_mcupm_status = status;
 		break;
 #endif
 

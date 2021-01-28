@@ -2,11 +2,12 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
  */
-#ifndef __CPU_EB_PTPOD_HW_DEF_H__
-#define __CPU_EB_PTPOD_HW_DEF_H__
+#ifndef __MCUPM_MET_H__
+#define __MCUPM_MET_H__
 /*****************************************************************************
  * headers
  *****************************************************************************/
+#include "met_drv.h"  /* for metdevice */
 
 
 /*****************************************************************************
@@ -22,14 +23,13 @@
 /*****************************************************************************
  * external function declaration
  *****************************************************************************/
+void notify_mcupm_cpu_pmu(int flag);
 
 
 /*****************************************************************************
  * external variable declaration
  *****************************************************************************/
-char cpu_eb_ptpod_header[] =
-"met-info [000] 0.0: met_eb_ptpod_header: \
-CPUVolt_0,CPUVolt_1,CPUVolt_CCI,CPUVolt_0_TBL,CPUVolt_1_TBL,CPUVolt_CCI_TBL\n";
+extern struct metdevice met_mcupm;
 
 
-#endif /* __CPU_EB_PTPOD_HW_DEF_H__ */
+#endif /* __MCUPM_MET_H__ */

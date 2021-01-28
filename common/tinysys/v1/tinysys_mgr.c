@@ -17,9 +17,9 @@
 #include "sspm/sspm_met_log.h"
 #endif
 
-#if FEATURE_CPU_EB_NUM
-#include "cpu_eb/cpu_eb_met_ipi_handle.h"
-#include "cpu_eb/cpu_eb_met_log.h"
+#if FEATURE_MCUPM_NUM
+#include "mcupm/mcupm_met_ipi_handle.h"
+#include "mcupm/mcupm_met_log.h"
 #endif
 
 
@@ -60,65 +60,65 @@ static int _create_sspm_node(struct device *dev);
 static void _remove_sspm_node(struct device *dev);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-static ssize_t _cpu_eb_ipi_supported_show(
+#if FEATURE_MCUPM_NUM
+static ssize_t _mcupm_ipi_supported_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
 
-static ssize_t _cpu_eb_buffer_size_show(
+static ssize_t _mcupm_buffer_size_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
 
-static ssize_t _cpu_eb_available_show(
+static ssize_t _mcupm_available_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
 
-static ssize_t _cpu_eb_log_discard_show(
+static ssize_t _mcupm_log_discard_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
 
-static ssize_t _cpu_eb_log_size_show(
+static ssize_t _mcupm_log_size_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
-static ssize_t _cpu_eb_log_size_store(
+static ssize_t _mcupm_log_size_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
 	size_t count);
 
-static ssize_t _cpu_eb_run_mode_show(
+static ssize_t _mcupm_run_mode_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
-static ssize_t _cpu_eb_run_mode_store(
+static ssize_t _mcupm_run_mode_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
 	size_t count);
 
-static ssize_t _cpu_eb_modules_show(
+static ssize_t _mcupm_modules_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf);
-static ssize_t _cpu_eb_modules_store(
+static ssize_t _mcupm_modules_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
 	size_t count);
 
-static ssize_t _cpu_eb_op_ctrl_store(
+static ssize_t _mcupm_op_ctrl_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
 	size_t count);
 
-static int _create_cpu_eb_node(struct kobject *kobj);
-static void _remove_cpu_eb_node(void);
+static int _create_mcupm_node(struct kobject *kobj);
+static void _remove_mcupm_node(void);
 #endif
 
 
@@ -151,27 +151,27 @@ static DEVICE_ATTR(sspm_modules, 0664, sspm_modules_show, sspm_modules_store);
 static DEVICE_ATTR(sspm_op_ctrl, 0220, NULL, sspm_op_ctrl_store);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-static int _cpu_eb_run_mode;
-static int _cpu_eb_log_size;
-static int _cpu_eb_log_discard;
-static struct kobject *_cpu_eb_kobj;
-static struct kobj_attribute _attr_cpu_eb_ipi_supported = \
-	__ATTR(ipi_supported, 0444, _cpu_eb_ipi_supported_show, NULL);
-static struct kobj_attribute _attr_cpu_eb_buffer_size = \
-	__ATTR(buffer_size, 0444, _cpu_eb_buffer_size_show, NULL);
-static struct kobj_attribute _attr_cpu_eb_available = \
-	__ATTR(available, 0444, _cpu_eb_available_show, NULL);
-static struct kobj_attribute _attr_cpu_eb_log_discard = \
-	__ATTR(log_discard, 0444, _cpu_eb_log_discard_show, NULL);
-static struct kobj_attribute _attr_cpu_eb_log_size = \
-	__ATTR(log_size, 0664, _cpu_eb_log_size_show, _cpu_eb_log_size_store);
-static struct kobj_attribute _attr_cpu_eb_run_mode = \
-	__ATTR(run_mode, 0664, _cpu_eb_run_mode_show, _cpu_eb_run_mode_store);
-static struct kobj_attribute _attr_cpu_eb_modules = \
-	__ATTR(modules, 0664, _cpu_eb_modules_show, _cpu_eb_modules_store);
-static struct kobj_attribute _attr_cpu_eb_op_ctrl = \
-	__ATTR(op_ctrl, 0220, NULL, _cpu_eb_op_ctrl_store);
+#if FEATURE_MCUPM_NUM
+static int _mcupm_run_mode;
+static int _mcupm_log_size;
+static int _mcupm_log_discard;
+static struct kobject *_mcupm_kobj;
+static struct kobj_attribute _attr_mcupm_ipi_supported = \
+	__ATTR(ipi_supported, 0444, _mcupm_ipi_supported_show, NULL);
+static struct kobj_attribute _attr_mcupm_buffer_size = \
+	__ATTR(buffer_size, 0444, _mcupm_buffer_size_show, NULL);
+static struct kobj_attribute _attr_mcupm_available = \
+	__ATTR(available, 0444, _mcupm_available_show, NULL);
+static struct kobj_attribute _attr_mcupm_log_discard = \
+	__ATTR(log_discard, 0444, _mcupm_log_discard_show, NULL);
+static struct kobj_attribute _attr_mcupm_log_size = \
+	__ATTR(log_size, 0664, _mcupm_log_size_show, _mcupm_log_size_store);
+static struct kobj_attribute _attr_mcupm_run_mode = \
+	__ATTR(run_mode, 0664, _mcupm_run_mode_show, _mcupm_run_mode_store);
+static struct kobj_attribute _attr_mcupm_modules = \
+	__ATTR(modules, 0664, _mcupm_modules_show, _mcupm_modules_store);
+static struct kobj_attribute _attr_mcupm_op_ctrl = \
+	__ATTR(op_ctrl, 0220, NULL, _mcupm_op_ctrl_store);
 #endif
 
 
@@ -197,8 +197,8 @@ int ondiemet_attr_init(struct device *dev)
 	}
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	ret = _create_cpu_eb_node(_g_tinysys_kobj);
+#if FEATURE_MCUPM_NUM
+	ret = _create_mcupm_node(_g_tinysys_kobj);
 	if (ret != 0) {
 		pr_debug("can not create cpu eb node\n");
 		return ret;
@@ -215,8 +215,8 @@ int ondiemet_attr_uninit(struct device *dev)
 	_remove_sspm_node(dev);
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	_remove_cpu_eb_node();
+#if FEATURE_MCUPM_NUM
+	_remove_mcupm_node();
 #endif
 
 	if (_g_tinysys_kobj != NULL) {
@@ -259,8 +259,8 @@ void ondiemet_start()
 	sspm_start();
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_start();
+#if FEATURE_MCUPM_NUM
+	mcupm_start();
 #endif
 
 }
@@ -272,8 +272,8 @@ void ondiemet_stop()
 	sspm_stop();
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_stop();
+#if FEATURE_MCUPM_NUM
+	mcupm_stop();
 #endif
 
 }
@@ -285,8 +285,8 @@ void ondiemet_extract()
 	sspm_extract();
 #endif
 
-#if FEATURE_CPU_EB_NUM
-	cpu_eb_extract();
+#if FEATURE_MCUPM_NUM
+	mcupm_extract();
 #endif
 
 }
@@ -566,8 +566,8 @@ static void _remove_sspm_node(struct device *dev)
 #endif
 
 
-#if FEATURE_CPU_EB_NUM
-static ssize_t _cpu_eb_ipi_supported_show(
+#if FEATURE_MCUPM_NUM
+static ssize_t _mcupm_ipi_supported_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
@@ -581,20 +581,20 @@ static ssize_t _cpu_eb_ipi_supported_show(
 }
 
 
-static ssize_t _cpu_eb_buffer_size_show(
+static ssize_t _mcupm_buffer_size_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
 {
 	int i = 0;
 
-	i = snprintf(buf, PAGE_SIZE, "%d\n", cpu_eb_buffer_size);
+	i = snprintf(buf, PAGE_SIZE, "%d\n", mcupm_buffer_size);
 
 	return i;
 }
 
 
-static ssize_t _cpu_eb_available_show(
+static ssize_t _mcupm_available_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
@@ -607,33 +607,33 @@ static ssize_t _cpu_eb_available_show(
 }
 
 
-static ssize_t _cpu_eb_log_discard_show(
+static ssize_t _mcupm_log_discard_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
 {
 	int i = 0;
 
-	i = snprintf(buf, PAGE_SIZE, "%d\n", _cpu_eb_log_discard);
+	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_log_discard);
 
 	return i;
 }
 
 
-static ssize_t _cpu_eb_log_size_show(
+static ssize_t _mcupm_log_size_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
 {
 	int i = 0;
 
-	i = snprintf(buf, PAGE_SIZE, "%d\n", _cpu_eb_log_size);
+	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_log_size);
 
 	return i;
 }
 
 
-static ssize_t _cpu_eb_log_size_store(
+static ssize_t _mcupm_log_size_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
@@ -645,26 +645,26 @@ static ssize_t _cpu_eb_log_size_store(
 		return -EINVAL;
 	}
 
-	_cpu_eb_log_size = value;
+	_mcupm_log_size = value;
 
 	return count;
 }
 
 
-static ssize_t _cpu_eb_run_mode_show(
+static ssize_t _mcupm_run_mode_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
 {
 	int i = 0;
 
-	i = snprintf(buf, PAGE_SIZE, "%d\n", _cpu_eb_run_mode);
+	i = snprintf(buf, PAGE_SIZE, "%d\n", _mcupm_run_mode);
 
 	return i;
 }
 
 
-static ssize_t _cpu_eb_run_mode_store(
+static ssize_t _mcupm_run_mode_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
@@ -676,13 +676,13 @@ static ssize_t _cpu_eb_run_mode_store(
 		return -EINVAL;
 	}
 
-	_cpu_eb_run_mode = value;
+	_mcupm_run_mode = value;
 
 	return count;
 }
 
 
-static ssize_t _cpu_eb_op_ctrl_store(
+static ssize_t _mcupm_op_ctrl_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
@@ -695,32 +695,32 @@ static ssize_t _cpu_eb_op_ctrl_store(
 	}
 
 	if (value == 1) {
-		cpu_eb_start();
+		mcupm_start();
 	} else if (value == 2) {
-		cpu_eb_stop();
+		mcupm_stop();
 	} else if (value == 3) {
-		cpu_eb_extract();
+		mcupm_extract();
 	} else if (value == 4) {
-		cpu_eb_flush();
+		mcupm_flush();
 	}
 
 	return count;
 }
 
 
-static ssize_t _cpu_eb_modules_show(
+static ssize_t _mcupm_modules_show(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	char *buf)
 {
 	int i = 0;
 
-	i = snprintf(buf, PAGE_SIZE, "0x%X\n", ondiemet_module[ONDIEMET_CPU_EB]);
+	i = snprintf(buf, PAGE_SIZE, "0x%X\n", ondiemet_module[ONDIEMET_MCUPM]);
 
 	return i;
 }
 
-static ssize_t _cpu_eb_modules_store(
+static ssize_t _mcupm_modules_store(
 	struct kobject *kobj,
 	struct kobj_attribute *attr,
 	const char *buf,
@@ -732,64 +732,64 @@ static ssize_t _cpu_eb_modules_store(
 		return -EINVAL;
 	}
 
-	ondiemet_module[ONDIEMET_CPU_EB] = value;
+	ondiemet_module[ONDIEMET_MCUPM] = value;
 
 	return count;
 }
 
 
-static int _create_cpu_eb_node(struct kobject *parent)
+static int _create_mcupm_node(struct kobject *parent)
 {
 	int ret = 0;
 
-	_cpu_eb_kobj = kobject_create_and_add("cpu_eb", parent);
-	if (_cpu_eb_kobj == NULL) {
+	_mcupm_kobj = kobject_create_and_add("mcupm", parent);
+	if (_mcupm_kobj == NULL) {
 		return -1;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_available.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_available.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: available\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_buffer_size.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_buffer_size.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: buffer_size\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_log_discard.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_log_discard.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: log_discard\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_log_size.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_log_size.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: log_size\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_run_mode.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_run_mode.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: run_mode\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_op_ctrl.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_op_ctrl.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: op_ctrl\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_modules.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_modules.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: modules\n");
 		return ret;
 	}
 
-	ret = sysfs_create_file(_cpu_eb_kobj, &_attr_cpu_eb_ipi_supported.attr);
+	ret = sysfs_create_file(_mcupm_kobj, &_attr_mcupm_ipi_supported.attr);
 	if (ret != 0) {
 		pr_debug("can not create device file: ipi_supported\n");
 		return ret;
@@ -798,21 +798,21 @@ static int _create_cpu_eb_node(struct kobject *parent)
 }
 
 
-static void _remove_cpu_eb_node()
+static void _remove_mcupm_node()
 {
-	if (_cpu_eb_kobj != NULL) {
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_buffer_size.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_available.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_log_discard.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_log_size.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_run_mode.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_op_ctrl.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_modules.attr);
-		sysfs_remove_file(_cpu_eb_kobj, &_attr_cpu_eb_ipi_supported.attr);
+	if (_mcupm_kobj != NULL) {
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_buffer_size.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_available.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_log_discard.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_log_size.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_run_mode.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_op_ctrl.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_modules.attr);
+		sysfs_remove_file(_mcupm_kobj, &_attr_mcupm_ipi_supported.attr);
 
-		kobject_del(_cpu_eb_kobj);
-		kobject_put(_cpu_eb_kobj);
-		_cpu_eb_kobj = NULL;
+		kobject_del(_mcupm_kobj);
+		kobject_put(_mcupm_kobj);
+		_mcupm_kobj = NULL;
 	}
 }
 #endif
