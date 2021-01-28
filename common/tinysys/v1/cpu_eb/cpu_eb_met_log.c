@@ -196,7 +196,7 @@ int cpu_eb_log_init(struct device *dev)
 		return -ENOMEM;
 	}
 #else
-	d = proc_create("cpu_eb_trace", 0600, met_dir, NULL, &cpu_eb_trace_fops);
+	d = proc_create("cpu_eb_trace", 0600, met_dir, &cpu_eb_trace_fops);
 	if (!d) {
 		PR_BOOTMSG("can not create devide node in procfs: cpu_eb_trace\n");
 		return -ENOMEM;

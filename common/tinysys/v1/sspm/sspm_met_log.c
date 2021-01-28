@@ -196,7 +196,7 @@ int sspm_log_init(struct device *dev)
 		return -ENOMEM;
 	}
 #else
-	d = proc_create("trace", 0600, met_dir, NULL, &sspm_trace_fops);
+	d = proc_create("trace", 0600, met_dir, &sspm_trace_fops);
 	if (!d) {
 		PR_BOOTMSG("can not create devide node in procfs: sspm_trace\n");
 		return -ENOMEM;
