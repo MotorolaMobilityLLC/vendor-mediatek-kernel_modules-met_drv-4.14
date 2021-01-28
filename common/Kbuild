@@ -326,6 +326,9 @@ endif
 $(info FEATURE_ONDIEMET = $(FEATURE_ONDIEMET))
 $(info FEATURE_ONDIEMET_WALLTIME = $(FEATURE_ONDIEMET_WALLTIME))
 
+SSPM_VERSION := $(if $(SSPM_VERSION),$(SSPM_VERSION),v1)
+$(info SSPM_VERSION = $(SSPM_VERSION))
+
 ifneq ($(FEATURE_ONDIEMET), n)
     subdir-ccflags-y += -DONDIEMET_SUPPORT
 
@@ -337,7 +340,7 @@ ifneq ($(FEATURE_ONDIEMET), n)
 
     ifeq ($(CONFIG_MTK_TINYSYS_SSPM_SUPPORT),y)
         # for sspm_ipi.h
-        subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm
+        subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(SSPM_VERSION)
         subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)
         met-y += $(MET_CORE)/sspm/sspm_ipi_handle.o
         met-y += $(MET_CORE)/sspm/sspm_common.o

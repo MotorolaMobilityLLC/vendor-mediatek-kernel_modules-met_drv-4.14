@@ -21,3 +21,4 @@ SPMTWAM_IDLE_SIGNAL_SUPPORT := multiple
 ################################################################################
 FEATURE_EVENT_POWER := n
 FEATURE_SPMTWAM := n
+SSPM_VERSION := v2
