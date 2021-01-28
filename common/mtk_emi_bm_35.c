@@ -539,10 +539,13 @@ int MET_BM_SetWSCT_high_priority(unsigned int *disable, unsigned int *select)
 	for (i=0;i<WSCT_AMOUNT;i++) {
 		addr = EMI_DBWA + i*4;
 		value = emi_readl(IOMEM(ADDR_EMI + addr));
-
 		value = (value & ~(Mask_disable << offset_disable)) | ((*(disable+i) & Mask_disable) << offset_disable);
-		value = (value & ~(Mask_select << offset_select)) | ((*(select+i) & Mask_select) << offset_select);
+		emi_reg_sync_writel(value, ADDR_EMI + addr);
 
+		/* ultra level setting */
+		addr = EMI_DBWA_2ND + i*4;
+		value = emi_readl(IOMEM(ADDR_EMI + addr));
+		value = (value & ~(Mask_select << offset_select)) | ((*(select+i) & Mask_select) << offset_select);
 		emi_reg_sync_writel(value, ADDR_EMI + addr);
 	}
 	return BM_REQ_OK;
