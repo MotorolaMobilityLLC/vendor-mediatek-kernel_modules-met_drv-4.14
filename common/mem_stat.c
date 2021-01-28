@@ -252,7 +252,12 @@ static int met_memstat_process_argument(const char *arg, int len)
 	memset(event, 0, sizeof(event));
 
 	str_len = (int)(pch - arg);
+        if (str_len >= 16)
+                goto error;
 	memcpy(choice, arg, str_len);
+
+        if (len - (str_len + 1) >= 32)
+                goto error;
 	memcpy(event, arg + str_len + 1, len - (str_len + 1));
 
 	if (strncmp(choice, "phy_mem_stat", 12) == 0) {
