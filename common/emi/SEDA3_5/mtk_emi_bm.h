@@ -25,7 +25,7 @@
 
 #define MET_MAX_DRAM_CH_NUM     4
 
-#define FILE_NODE_DATA_LEN 512 
+#define FILE_NODE_DATA_LEN 512
 #define WSCT_AMOUNT 6
 #define TSCT_AMOUNT 3
 
@@ -33,6 +33,7 @@
 #define DRAM_EMI_BASECLOCK_RATE_LP4     4
 #define DRAM_EMI_BASECLOCK_RATE_LP3     2
 
+#define DRAM_IO_BUS_WIDTH_LP5           16
 #define DRAM_IO_BUS_WIDTH_LP4           16
 #define DRAM_IO_BUS_WIDTH_LP3           32
 
@@ -280,7 +281,7 @@ enum BM_EMI_IPI_Type {
 
 
 /* met_drv define  & global var */
-#define CNT_COUNTDOWN   (0)    
+#define CNT_COUNTDOWN   (0)
 
 /* extern struct metdevice met_sspm_emi; */
 
@@ -398,7 +399,7 @@ extern unsigned int output_str_len;
 #define emi_help_msg "  --emi                                 monitor EMI banwidth\n"
 
 extern int emi_use_ondiemet;
-extern int emi_inited; 
+extern int emi_inited;
 
 enum SSPM_Mode {
 	CUSTOMER_MODE = 0x0,
