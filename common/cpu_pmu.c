@@ -418,12 +418,12 @@ static irqreturn_t handle_irq_selective_ignore_overflow(int irq_num, void *dev)
 	int cpu, ii, idx, is_cyc_cnt, event_count;
 	struct met_pmu *pmu;
 	struct perf_event *ev;
-	
+
 	cpu = raw_smp_processor_id();
 
 	pmu = cpu_pmu->pmu[cpu];
 	event_count = cpu_pmu->event_count[cpu];
-	
+
 	for (ii = 0; ii < event_count; ii++) {
 		ev = per_cpu(pevent, cpu)[ii];
 
@@ -437,7 +437,7 @@ static irqreturn_t handle_irq_selective_ignore_overflow(int irq_num, void *dev)
 			}
 		}
 	}
-	
+
 	return handle_irq_orig(irq_num, dev);
 }
 
@@ -830,7 +830,7 @@ static int reset_driver_stat(void)
 			pmu[i].init_failed = 0;
 		}
 	}
-	
+
 	ondiemet_sample_all_cnt = 0;
 
 	return 0;
@@ -867,9 +867,9 @@ static int __is_pmu_regular_reg_allocated(int cpu, int hw_idx)
 	if (hw_idx >= (event_count - 1) || hw_idx < 0) {
 		return 0;
 	}
-	
+
 	pmu = cpu_pmu->pmu[cpu];
-	
+
 	if (met_cpu_pmu_method) {
 		/* no need to check cycle count, thus use event_count-1 */
 		for (ii = 0; ii < event_count - 1; ii ++) {
@@ -888,7 +888,7 @@ static int __is_pmu_regular_reg_allocated(int cpu, int hw_idx)
 			return 1;
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -905,9 +905,9 @@ static int __pmu_event_on_hw_idx(int cpu, int hw_idx)
 	if (hw_idx >= (event_count - 1) || hw_idx < 0) {
 		return 0;
 	}
-	
+
 	pmu = cpu_pmu->pmu[cpu];
-	
+
 	if (met_cpu_pmu_method) {
 		/* no need to check cycle count, thus use event_count-1 */
 		for (ii = 0; ii < event_count - 1; ii ++) {
@@ -926,7 +926,7 @@ static int __pmu_event_on_hw_idx(int cpu, int hw_idx)
 			return pmu[hw_idx].event;
 		}
 	}
-	
+
 	/* just return a dummy value when not found */
 	return 0;
 }
@@ -952,7 +952,7 @@ static int cpupmu_print_header(char *buf, int len)
 	/*append cache line size*/
 	ret += snprintf(buf + ret, len - ret, cache_line_header, cache_line_size());
 	ret += snprintf(buf + ret, len - ret, "# mp_cpu: pmu_value1, ...\n");
-	
+
 	/*
 	 * print error message when user requested more pmu events than
 	 * platform's capability.
@@ -962,12 +962,12 @@ static int cpupmu_print_header(char *buf, int len)
 		if (nr_ignored_arg[cpu]) {
 			ret += snprintf(buf + ret,
 					len - ret,
-					"met-info [000] 0.0: !!_PMU_INIT_FAIL: "
+					"met-info [000] 0.0: ##_PMU_INIT_FAIL: "
 					"too many events requested on CPU %d (max = %d+1), %d events ignored\n",
 					cpu, cpu_pmu->event_count[cpu]-1, nr_ignored_arg[cpu]);
 		}
 	}
-	
+
 	/*
 	 * print error message of init failed events due to lack of
 	 * hardware register slots, it usually happened when they were occupied
@@ -978,7 +978,7 @@ static int cpupmu_print_header(char *buf, int len)
 		event_count = cpu_pmu->event_count[cpu];
 		pmu = cpu_pmu->pmu[cpu];
 		first = 1;
-		
+
 		for (i = 0; i < event_count; i++) {
 
 			if (pmu[i].init_failed != PMU_INIT_FAIL_CPU_OFFLINE)
@@ -987,8 +987,8 @@ static int cpupmu_print_header(char *buf, int len)
 			if (first) {
 				ret += snprintf(buf + ret,
 						len - ret,
-						"met-info [000] 0.0: !!_PMU_INIT_FAIL: "
-						"CPU %d offline, unable to allocate following PMU event(s): 0x%x",
+						"met-info [000] 0.0: ##_PMU_INIT_FAIL: "
+						"CPU %d offline, unable to allocate following PMU event(s) 0x%x",
 						cpu, pmu[i].event);
 				first = 0;
 				continue;
@@ -999,7 +999,7 @@ static int cpupmu_print_header(char *buf, int len)
 		if (!first)
 			ret += snprintf(buf + ret, len - ret, "\n");
 	}
-	
+
 	/*
 	 * print error message of init failed events due cpu offline
 	 */
@@ -1008,7 +1008,7 @@ static int cpupmu_print_header(char *buf, int len)
 		event_count = cpu_pmu->event_count[cpu];
 		pmu = cpu_pmu->pmu[cpu];
 		first = 1;
-		
+
 		for (i = 0; i < event_count; i++) {
 
 			if (pmu[i].init_failed != PMU_INIT_FAIL_OCCUPIED)
@@ -1017,8 +1017,8 @@ static int cpupmu_print_header(char *buf, int len)
 			if (first) {
 				ret += snprintf(buf + ret,
 						len - ret,
-						"met-info [000] 0.0: !!_PMU_INIT_FAIL: "
-						"on CPU %d, no enough PMU register slots to allocate events: 0x%x",
+						"met-info [000] 0.0: ##_PMU_INIT_FAIL: "
+						"on CPU %d, no enough PMU register slots to allocate events 0x%x",
 						cpu, pmu[i].event);
 				first = 0;
 				continue;
@@ -1035,7 +1035,7 @@ static int cpupmu_print_header(char *buf, int len)
 	/*
 	 * when option `ondiemet_sample_all_cnt' is turned on, print a list of
 	 * bitmap indicating which pmu hardware registers were successfully allocated.
-	 * 
+	 *
 	 * XXX: note that the ordering of bit map MUST be exactly consistent to
 	 *      met_cpu_header_v2's
 	 */
@@ -1044,7 +1044,7 @@ static int cpupmu_print_header(char *buf, int len)
 
 			event_count = cpu_pmu->event_count[cpu];
 			pmu = cpu_pmu->pmu[cpu];
-		
+
 			ret += snprintf(buf + ret, len - ret,
 					"met-info [000] 0.0: ondiemet_cpu_pmu_valid_counters: %d", cpu);
 
@@ -1059,7 +1059,7 @@ static int cpupmu_print_header(char *buf, int len)
 	}
 #endif
 #endif
-	
+
 	for_each_possible_cpu(cpu) {
 		event_count = cpu_pmu->event_count[cpu];
 		pmu = cpu_pmu->pmu[cpu];
@@ -1486,7 +1486,7 @@ static void sspm_pmu_unique_start(void) {
                 } else if (__validate_sspm_compatibility() == -1) {
 			if (ondiemet_fallback_uncont_evts) {
 				ondiemet_sample_all_cnt = 1;
-				
+
 				MET_TRACE("[MET_PMU] nonsequential events detected, "
 					  "turn on option ondiemet_sample_all_cnt\n");
 				pr_debug("[MET_PMU] nonsequential events detected, "
