@@ -130,6 +130,11 @@ int (*mtk_thermal_get_temp_symbol)(enum mtk_thermal_sensor_id id);
 int (*tscpu_get_cpu_temp_met_symbol)(enum mtk_thermal_sensor_cpu_id_met id);
 #endif
 
+#ifdef MET_BACKLIGHT
+int (*mtk_leds_register_notifier_symbol)(struct notifier_block *nb);
+int (*mtk_leds_unregister_notifier_symbol)(struct notifier_block *nb);
+#endif
+
 
 static int met_symbol_get(void)
 {
@@ -232,6 +237,11 @@ static int met_symbol_get(void)
 	_MET_SYMBOL_GET(mt_thermalsampler_registerCB);
 	_MET_SYMBOL_GET(mtk_thermal_get_temp);
 	_MET_SYMBOL_GET(tscpu_get_cpu_temp_met);
+#endif
+
+#ifdef MET_BACKLIGHT
+	_MET_SYMBOL_GET(mtk_leds_register_notifier);
+	_MET_SYMBOL_GET(mtk_leds_unregister_notifier);
 #endif
 
 	return 0;
@@ -337,6 +347,11 @@ static int met_symbol_put(void)
 	_MET_SYMBOL_PUT(tscpu_get_cpu_temp_met);
 #endif
 
+#ifdef MET_BACKLIGHT
+	_MET_SYMBOL_PUT(mtk_leds_register_notifier);
+	_MET_SYMBOL_PUT(mtk_leds_unregister_notifier);
+#endif
+
 	return 0;
 }
 
@@ -361,7 +376,11 @@ int core_plf_init(void)
 #endif
 
 #ifdef MET_EMI
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	met_register(&met_sspm_emi);
+#endif
+#endif
 #endif
 
 #ifdef MET_SMI
@@ -401,6 +420,12 @@ int core_plf_init(void)
 	met_register(&met_thermal_cpu);
 #endif
 
+#ifdef MET_BACKLIGHT
+	met_register(&met_backlight);
+	met_ext_api.enable_met_backlight_tag = enable_met_backlight_tag_real;
+	met_ext_api.output_met_backlight_tag = output_met_backlight_tag_real;
+#endif
+
 	return 0;
 }
 
@@ -425,7 +450,11 @@ void core_plf_exit(void)
 #endif
 
 #ifdef MET_EMI
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
 	met_deregister(&met_sspm_emi);
+#endif
+#endif
 #endif
 
 #ifdef MET_SMI
@@ -467,4 +496,9 @@ void core_plf_exit(void)
 	met_deregister(&met_thermal_cpu);
 #endif
 
+#ifdef MET_BACKLIGHT
+	met_deregister(&met_backlight);
+	met_ext_api.enable_met_backlight_tag = NULL;
+	met_ext_api.output_met_backlight_tag = NULL;
+#endif
 }

@@ -33,16 +33,12 @@
 #endif
 #endif
 
-
 #include "met_drv.h"
 #include "met_tag.h"
 #include "met_kernel_symbol.h"
 #include "met_power.h"
 #include "met_api_tbl.h"
 #include "version.h"
-
-extern int enable_met_backlight_tag(void);
-extern int output_met_backlight_tag(int level);
 
 static int run = -1;
 static int sample_rate = 1000;	/* Default: 1000 Hz */
@@ -1425,10 +1421,6 @@ int fs_reg(int met_minor)
 	met_register(&met_cpu_pmue);
 #endif
 
-	met_register(&met_backlight);
-	met_ext_api.enable_met_backlight_tag = enable_met_backlight_tag_real;
-	met_ext_api.output_met_backlight_tag = output_met_backlight_tag_real;
-
 #ifdef MET_USER_EVENT_SUPPORT
 	tag_reg((struct file_operations * const) met_device.fops, &met_device.this_device->kobj);
 #endif
@@ -1478,9 +1470,6 @@ void fs_unreg(void)
 	met_deregister(&met_memstat);
 	met_deregister(&met_cpupmu);
 	met_deregister(&met_cookie);
-	met_deregister(&met_backlight);
-	met_ext_api.enable_met_backlight_tag = NULL;
-	met_ext_api.output_met_backlight_tag = NULL;
 
 	kobject_del(kobj_misc);
 	kobject_put(kobj_misc);

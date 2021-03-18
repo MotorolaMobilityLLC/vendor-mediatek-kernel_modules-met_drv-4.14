@@ -37,7 +37,6 @@ ccflags-y += -DMTK_PLATFORM=$(MTK_PLATFORM)
 #ccflags-y += -DONDIEMET_MOUNT_DEBUGFS
 
 met-y := $(MET_CORE)/met_main.o \
-    $(MET_CORE)/met_backlight.o \
     $(MET_CORE)/met_tag_ex.o \
     $(MET_CORE)/interface.o \
     $(MET_CORE)/sampler.o \
@@ -405,6 +404,17 @@ $(info FEATURE_SMI = $(FEATURE_SMI))
 #MET_SMI := $(if $(filter n,$(FEATURE_SMI)),n,y)
 
 #met-$(MET_SMI) += $(MET_CORE)/sspm/sspm_met_smi.o
+
+################################################################################
+# MET_BACKLIGHT
+################################################################################
+FEATURE_MET_BACKLIGHT := $(if $(FEATURE_MET_BACKLIGHT),$(FEATURE_MET_BACKLIGHT),y)
+$(info FEATURE_MET_BACKLIGHT = $(FEATURE_MET_BACKLIGHT))
+
+MET_BACKLIGHT := $(if $(filter n,$(FEATURE_MET_BACKLIGHT)),n,y)
+
+met-$(MET_BACKLIGHT) += $(MET_CORE)/met_backlight.o
+
 
 ################################################################################
 # EVENT_POWER

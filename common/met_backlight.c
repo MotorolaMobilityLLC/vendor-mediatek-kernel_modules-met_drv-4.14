@@ -13,11 +13,13 @@
 
 #include <linux/kernel.h>
 #include <linux/module.h>
-#ifdef CONFIG_LEDS_MTK_DISP
-#include "mtk_leds_drv.h"
-#include "leds-mtk-disp.h"
-#elif defined CONFIG_LEDS_MTK_PWM
 #include <mtk_leds_drv.h>
+
+#ifdef CONFIG_LEDS_MTK_DISP
+#include <leds-mtk-disp.h>
+#elif defined CONFIG_LEDS_MTK_PWM
+#include <leds-mtk-pwm.h>
+#elif defined CONFIG_LEDS_MTK_I2C
 #include <leds-mtk-pwm.h>
 #endif
 
@@ -25,6 +27,7 @@
 #define MET_USER_EVENT_SUPPORT
 #include "met_drv.h"
 #include "trace.h"
+#include "core_plf_init.h"
 
 static int met_backlight_enable;
 static DEFINE_SPINLOCK(met_backlight_lock);
@@ -36,7 +39,8 @@ static ssize_t bl_tag_enable_store(struct kobject *kobj,
 static struct kobj_attribute bl_tag_enable_attr =
 __ATTR(backlight_tag_enable, 0664, bl_tag_enable_show, bl_tag_enable_store);
 
-#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM)
+#if defined(CONFIG_MTK_LEDS)
+#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM) || defined(CONFIG_LEDS_MTK_I2C)
 static int led_brightness_changed_event(struct notifier_block *nb,
 					unsigned long event, void *v)
 {
@@ -58,6 +62,7 @@ static int led_brightness_changed_event(struct notifier_block *nb,
 static struct notifier_block leds_change_notifier = {
 	.notifier_call = led_brightness_changed_event,
 };
+#endif
 #endif
 
 int enable_met_backlight_tag_real(void)
@@ -104,12 +109,16 @@ static ssize_t bl_tag_enable_store(struct kobject *kobj,
 	if (value < 0)
 		return -EINVAL;
 
-#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM)
+#if defined(CONFIG_MTK_LEDS)
+#if defined(CONFIG_LEDS_MTK_DISP) || defined(CONFIG_LEDS_MTK_PWM) || defined(CONFIG_LEDS_MTK_I2C)
 	if (value == 1) {
-		mtk_leds_register_notifier(&leds_change_notifier);
+		if (mtk_leds_register_notifier_symbol)
+			mtk_leds_register_notifier_symbol(&leds_change_notifier);
 	} else if (value == 0) {
-		mtk_leds_unregister_notifier(&leds_change_notifier);
+		if (mtk_leds_unregister_notifier_symbol)
+			mtk_leds_unregister_notifier_symbol(&leds_change_notifier);
 	}
+#endif
 #endif
 	met_backlight_enable = value;
 

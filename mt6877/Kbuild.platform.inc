@@ -40,6 +40,7 @@ EMI_LOWEFF_SUPPORT := y
 ################################################################################
 # Feature On/Off
 ################################################################################
+FEATURE_MET_BACKLIGHT := y
 FEATURE_EVENT_POWER := n
 FEATURE_SPMTWAM := n
 FEATURE_ONDIEMET := n

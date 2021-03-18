@@ -44,15 +44,17 @@ static void met_emi_resume(void)
 	met_emi_resume_basic();
 }
 
-static int emi_print_help(char *buf, int len)
-{
-	return snprintf(buf, PAGE_SIZE, emi_help_msg);
-}
-
 static int emi_print_header(char *buf, int len)
 {
 	len = emi_print_header_basic(buf,len);
 	return len;
+}
+
+#if defined(CONFIG_MTK_TINYSYS_SSPM_SUPPORT)
+#if defined(ONDIEMET_SUPPORT) || defined(TINYSYS_SSPM_SUPPORT)
+static int emi_print_help(char *buf, int len)
+{
+	return snprintf(buf, PAGE_SIZE, emi_help_msg);
 }
 
 static int ondiemet_emi_print_header(char *buf, int len)
@@ -69,7 +71,8 @@ static void ondiemet_emi_stop(void)
 {
 	ondiemet_emi_stop_basic();
 }
-
+#endif
+#endif
 
 struct metdevice met_sspm_emi = {
 	.name			= "emi",
