@@ -16,6 +16,15 @@
 
 #include <linux/fs.h>
 
+struct tag_chipid {
+	u32 size;
+	u32 hw_code;
+	u32 hw_subcode;
+	u32 hw_ver;
+	u32 sw_ver;
+};
+extern unsigned int met_get_chipid_from_atag(void);
+
 #ifdef MET_USER_EVENT_SUPPORT
 extern int tag_reg(struct file_operations *const fops, struct kobject *kobj);
 extern int tag_unreg(void);

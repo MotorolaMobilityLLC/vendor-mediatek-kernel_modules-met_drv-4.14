@@ -326,6 +326,7 @@ static int __init met_drv_init(void)
 	int ret;
 	int cpu_topology_len;
 	struct met_cpu_struct *met_cpu_ptr;
+	unsigned int chip_id;
 
 	for_each_possible_cpu(cpu) {
 		met_cpu_ptr = &per_cpu(met_cpu, cpu);
@@ -394,8 +395,13 @@ static int __init met_drv_init(void)
 
 	if (mt_get_chip_id_symbol != NULL)
 		met_set_chip_id(mt_get_chip_id_symbol());
-	else
-		PR_BOOTMSG("Can not get chip id info by mt_get_chip_id(), set chip_id=0x0\n");
+	else {
+		chip_id = met_get_chipid_from_atag();
+		if (((int) chip_id) < 0) {
+			PR_BOOTMSG("Can not get chip id info, set chip_id=0x0\n");
+		} else
+			met_set_chip_id(chip_id);
+	}
 
 	cpu_topology_len = met_create_cpu_topology();
 	if (cpu_topology_len)

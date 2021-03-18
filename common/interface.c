@@ -20,6 +20,7 @@
 #include <linux/kallsyms.h>
 #include <linux/syscore_ops.h>
 #include <linux/dma-mapping.h>
+#include <linux/of.h>
 #include "interface.h"
 #include "sampler.h"
 #include "util.h"
@@ -1176,6 +1177,30 @@ const unsigned int met_get_chip_id(void)
 	return met_chip_id;
 }
 EXPORT_SYMBOL(met_get_chip_id);
+
+unsigned int met_get_chipid_from_atag(void)
+{
+	struct device_node *chosen_node;
+	struct tag_chipid *chip_id;
+	int len;
+
+	chosen_node = of_find_node_by_path("/chosen");
+	if (!chosen_node)
+		chosen_node = of_find_node_by_path("/chosen@0");
+
+	if (chosen_node) {
+		chip_id = (struct tag_chipid*) of_get_property(chosen_node, "atag,chipid", &len);
+		if (chip_id == NULL) {
+			PR_BOOTMSG("Warning: could not found atag,chipid in chosen\n");
+			return -1;
+		}
+	} else {
+		PR_BOOTMSG("Warning: chosen node not found in device tree\n");
+		return -1;
+	}
+
+	return chip_id->hw_code;
+}
 
 int met_set_topology(const char *topology_name, int flag)
 {
