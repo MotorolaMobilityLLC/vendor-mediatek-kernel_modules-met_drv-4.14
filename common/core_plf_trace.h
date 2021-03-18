@@ -26,4 +26,6 @@ char *ms_formatD_ulong(char *__restrict__ buf, unsigned char cnt,
 char *ms_formatH_EOL(char *__restrict__ buf, unsigned char cnt, unsigned int *__restrict__ value);
 char *ms_formatD_EOL(char *__restrict__ buf, unsigned char cnt, unsigned int *__restrict__ value);
 
+void ms_th(const unsigned char cnt, unsigned int *value);
+
 #endif	/* _CORE_PLF_TRACE_H_ */

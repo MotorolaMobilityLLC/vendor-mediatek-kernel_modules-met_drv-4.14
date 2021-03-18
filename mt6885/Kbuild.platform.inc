@@ -16,6 +16,7 @@
 ################################################################################
 MET_VCOREDVFS_INC := $(srctree)/drivers/misc/mediatek/base/power/include/vcorefs_v3
 MET_PTPOD_INC := $(srctree)/drivers/misc/mediatek/base/power/cpufreq_v1/src/mach/$(MTK_PLATFORM)/
+GPUFREQ_INC := $(srctree)/drivers/misc/mediatek/base/power/include/gpufreq_v1
 
 ################################################################################
 # Feature Spec

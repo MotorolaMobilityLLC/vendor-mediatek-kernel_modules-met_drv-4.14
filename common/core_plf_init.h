@@ -230,5 +230,21 @@ extern void (*spm_twam_config_channel_symbol)(struct twam_cfg *cfg, bool speed_m
 extern struct metdevice met_spmtwam;
 #endif
 
+#ifdef MET_THERMAL
+/*
+ *   Thermal & Thermal_CPU
+ */
+#include <mtk_thermal_monitor.h>
+#include <mtk_thermal.h>
+typedef void (*met_thermalsampler_func) (void /*struct work_struct * */);
+
+extern void (*mt_thermalsampler_registerCB_symbol)(met_thermalsampler_func pCB);
+extern int (*mtk_thermal_get_temp_symbol)(enum mtk_thermal_sensor_id id);
+extern int (*tscpu_get_cpu_temp_met_symbol)(enum mtk_thermal_sensor_cpu_id_met id);
+
+extern struct metdevice met_thermal;
+extern struct metdevice met_thermal_cpu;
+#endif
+
 
 #endif /*__CORE_PLF_INIT_H__*/

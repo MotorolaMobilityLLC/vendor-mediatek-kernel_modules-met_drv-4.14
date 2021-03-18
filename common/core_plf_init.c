@@ -121,6 +121,15 @@ void (*spm_twam_config_channel_symbol)(struct twam_cfg *cfg, bool speed_mode, un
 #endif
 #endif
 
+#ifdef MET_THERMAL
+/*
+ *   Thermal & Thermal_cpu
+ */
+void (*mt_thermalsampler_registerCB_symbol)(met_thermalsampler_func pCB);
+int (*mtk_thermal_get_temp_symbol)(enum mtk_thermal_sensor_id id);
+int (*tscpu_get_cpu_temp_met_symbol)(enum mtk_thermal_sensor_cpu_id_met id);
+#endif
+
 
 static int met_symbol_get(void)
 {
@@ -217,6 +226,12 @@ static int met_symbol_get(void)
 		_MET_SYMBOL_GET(spm_twam_met_enable);
 		_MET_SYMBOL_GET(spm_twam_config_channel);
 #endif
+#endif
+
+#ifdef MET_THERMAL
+	_MET_SYMBOL_GET(mt_thermalsampler_registerCB);
+	_MET_SYMBOL_GET(mtk_thermal_get_temp);
+	_MET_SYMBOL_GET(tscpu_get_cpu_temp_met);
 #endif
 
 	return 0;
@@ -316,6 +331,12 @@ static int met_symbol_put(void)
 #endif
 #endif
 
+#ifdef MET_THERMAL
+	_MET_SYMBOL_PUT(mt_thermalsampler_registerCB);
+	_MET_SYMBOL_PUT(mtk_thermal_get_temp);
+	_MET_SYMBOL_PUT(tscpu_get_cpu_temp_met);
+#endif
+
 	return 0;
 }
 
@@ -373,6 +394,11 @@ int core_plf_init(void)
 
 #ifdef MET_SPM_TWAM
 	met_register(&met_spmtwam);
+#endif
+
+#ifdef MET_THERMAL
+	met_register(&met_thermal);
+	met_register(&met_thermal_cpu);
 #endif
 
 	return 0;
@@ -434,6 +460,11 @@ void core_plf_exit(void)
 
 #ifdef MET_SPM_TWAM
 	met_deregister(&met_spmtwam);
+#endif
+
+#ifdef MET_THERMAL
+	met_deregister(&met_thermal);
+	met_deregister(&met_thermal_cpu);
 #endif
 
 }

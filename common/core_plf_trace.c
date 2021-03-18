@@ -320,3 +320,12 @@ char *ms_formatD_EOL(char *__restrict__ buf, unsigned char cnt, unsigned int *__
 }
 EXPORT_SYMBOL(ms_formatD_EOL);
 
+noinline void ms_th(const unsigned char cnt, unsigned int *value)
+{
+	char *SOB, *EOB;
+
+	MET_TRACE_GETBUF(&SOB, &EOB);
+	// coverity[var_deref_op : FALSE]
+	EOB = ms_formatD_EOL(EOB, cnt, value);
+	MET_TRACE_PUTBUF(SOB, EOB);
+}

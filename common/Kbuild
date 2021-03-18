@@ -320,6 +320,60 @@ endif
 
 met-$(MET_PTPOD) += $(MET_CORE)/met_ptpod.o
 
+################################################################################
+# MET_THERMAL
+################################################################################
+FEATURE_THERMAL := $(if $(FEATURE_THERMAL),$(FEATURE_THERMAL),y)
+$(info FEATURE_THERMAL = $(FEATURE_THERMAL))
+
+ifneq ($(FEATURE_THERMAL), n)
+    ifeq ($(CONFIG_THERMAL),y)
+        MET_THERMAL := y
+
+        GPUFREQ_INC := $(if $(GPUFREQ_INC),$(GPUFREQ_INC),$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM))
+        $(info GPUFREQ_INC = $(GPUFREQ_INC))
+
+        # for mtk_gpufreq.h used by mtk_thermal.h
+        ifeq ($(wildcard $(GPUFREQ_INC)/mtk_gpufreq.h),)
+            MET_THERMAL = n
+            $(info ======== Missing $(GPUFREQ_INC)/mtk_thermal.h. Set GPUFREQ_INC to correct it. ========)
+            $(info ======== disable MET_THERMAL ========)
+        endif
+
+        # for mtk_thermal.h
+        ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/thermal/$(MTK_PLATFORM)/inc/mach/mtk_thermal.h)","")
+            ccflags-y += -I$(srctree)/drivers/misc/mediatek/thermal/$(MTK_PLATFORM)/inc/mach/
+            ccflags-y += -I$(GPUFREQ_INC)
+            ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_PLATFORM)
+            ccflags-y  += -I$(srctree)/drivers/misc/mediatek/base/power/include/gpufreq_v1/
+        else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/thermal/$(MTK_FAMILY_PLATFORM)/inc/mach/mtk_thermal.h)","")
+            ccflags-y += -I$(srctree)/drivers/misc/mediatek/thermal/$(MTK_FAMILY_PLATFORM)/inc/mach/
+            ccflags-y += -I$(GPUFREQ_INC)
+            ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/$(MTK_FAMILY_PLATFORM)
+            ccflags-y  += -I$(srctree)/drivers/misc/mediatek/base/power/include/gpufreq_v1/
+        else
+            MET_THERMAL = n
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/thermal/$(MTK_PLATFORM)/inc/mach/mtk_thermal.h ========)
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/thermal/$(MTK_FAMILY_PLATFORM)/inc/mach/mtk_thermal.h ========)
+            $(info ======== disable MET_THERMAL ========)
+        endif
+
+        # for mtk_thermal_monitor.h
+        ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/include/mt-plat/mtk_thermal_monitor.h)","")
+            ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
+        else
+            MET_THERMAL = n
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/include/mt-plat/mtk_thermal_monitor.h ========)
+            $(info ======== disable MET_THERMAL ========)
+        endif
+    else
+        MET_THERMAL := n
+    endif
+else
+    MET_THERMAL := n
+endif
+
+met-$(MET_THERMAL) += $(MET_CORE)/met_thermal.o
 
 ################################################################################
 # MET_CPUDSU
