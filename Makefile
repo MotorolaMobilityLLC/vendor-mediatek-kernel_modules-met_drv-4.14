@@ -9,6 +9,9 @@ endif
 ifeq ($(CONFIG_MACH_MT6877),y)
     MTK_PLATFORM := mt6877
 endif
+ifeq ($(CONFIG_MACH_MT6781),y)
+    MTK_PLATFORM := mt6781
+endif
 
 MET_ROOT_DIR := $(src)
 MET_COMMON_DIR := $(wildcard $(MET_ROOT_DIR)/common)

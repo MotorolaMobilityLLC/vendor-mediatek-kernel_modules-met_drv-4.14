@@ -388,20 +388,19 @@ static int __init met_drv_init(void)
 			}
 		}
 	}
-	/* get the chip id */
 
+	/* get the chip id */
 	if (mt_get_chip_id_symbol == NULL)
 		mt_get_chip_id_symbol = (void *)symbol_get(mt_get_chip_id);
 
-	if (mt_get_chip_id_symbol != NULL)
-		met_set_chip_id(mt_get_chip_id_symbol());
-	else {
-		chip_id = met_get_chipid_from_atag();
-		if (((int) chip_id) < 0) {
+	chip_id = met_get_chipid_from_atag();
+	if (((int) chip_id) < 0) {
+		if (mt_get_chip_id_symbol != NULL)
+			met_set_chip_id(mt_get_chip_id_symbol());
+		else
 			PR_BOOTMSG("Can not get chip id info, set chip_id=0x0\n");
-		} else
-			met_set_chip_id(chip_id);
-	}
+	} else
+		met_set_chip_id(chip_id);
 
 	cpu_topology_len = met_create_cpu_topology();
 	if (cpu_topology_len)
