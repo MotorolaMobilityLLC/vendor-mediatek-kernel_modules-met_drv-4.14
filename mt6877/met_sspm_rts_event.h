@@ -4,7 +4,7 @@
  */
 MET_SSPM_RTS_EVNET(SSPM_PTPOD, "_id,voltage")
 MET_SSPM_RTS_EVNET(SSPM_MET_UNIT_TEST, "test")
-MET_SSPM_RTS_EVNET(SSPM_QOS_BOUND_STATE, "idx,state,num,event,emibw_mon_total,emibw_mon_cpu,emibw_mon_gpu,emibw_mon_mm,emibw_mon_md,emibw_req_total,emibw_req_cpu,emibw_req_gpu,emibw_req_mm,emibw_req_md,smibw_mon_venc,smibw_mon_cam,smibw_mon_img,smibw_mon_mdp,smibw_mon_gpu,smibw_mon_apu,smibw_mon_vpu0,smibw_mon_vpu1,smibw_mon_apumd32,smibw_req_venc,smibw_req_cam,smibw_req_img,smibw_req_mdp,smibw_req_gpu,smibw_req_apu,smibw_req_vpu0,smibw_req_vpu1,smibw_req_apumd32,lat_mon_cpu,lat_mon_vpu0,lat_mon_vpu1,lat_mon_apumd32")
+MET_SSPM_RTS_EVNET(SSPM_QOS_BOUND_STATE, "idx,state,num,event,emibw_mon_total,emibw_mon_cpu,emibw_mon_gpu,emibw_mon_mm,emibw_mon_md,emibw_req_total,emibw_req_cpu,emibw_req_gpu,emibw_req_mm,emibw_req_md,smibw_mon_venc,smibw_mon_cam,smibw_mon_img,smibw_mon_mdp,smibw_mon_gpu,smibw_mon_apu,smibw_mon_vpu0,smibw_mon_vpu1,smibw_mon_mdla0,smibw_mon_edma0,smibw_mon_xpu,smibw_req_venc,smibw_req_cam,smibw_req_img,smibw_req_mdp,smibw_req_gpu,smibw_req_apu,smibw_req_vpu0,smibw_req_vpu1,smibw_req_mdla0,smibw_req_edma0,smibw_req_xpu,lat_mon_cpu,lat_mon_vpu0,lat_mon_vpu1,lat_mon_mdla0,lat_mon_edma0,lat_mon_xpu")
 MET_SSPM_RTS_EVNET(SSPM_CM_MGR_NON_WFX, "non_wfx_0,non_wfx_1,non_wfx_2,non_wfx_3,non_wfx_4,non_wfx_5,non_wfx_6,non_wfx_7")
 MET_SSPM_RTS_EVNET(SSPM_CM_MGR_LOADING, "ratio,cps")
 MET_SSPM_RTS_EVNET(SSPM_CM_MGR_POWER, "c_up_array_0,c_up_array_1,c_down_array_0,c_down_array_1,c_up_0,c_up_1,c_down_0,c_dwon_1,c_up,c_down,v_up,v_down,v2f_0,v2f_1")
