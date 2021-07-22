@@ -486,9 +486,15 @@ ifneq ($(FEATURE_ONDIEMET), n)
                     -I$(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)
 
             SYS_SSPM_READY := y
+        else ifneq ("$(wildcard $(srctree)/drivers/misc/mediatek/sspm/$(SSPM_VERSION)/$(MET_SSPM_IPI))","")
+            subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/sspm \
+                    -I$(srctree)/drivers/misc/mediatek/sspm/$(CONFIG_MTK_TINYSYS_SSPM_VERSION)
+
+            SYS_SSPM_READY := y
         else
             $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_PLATFORM)/$(MET_SSPM_IPI)========)
             $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(MTK_FAMILY_PLATFORM)/$(MET_SSPM_IPI)========)
+            $(info ======== Missing $(srctree)/drivers/misc/mediatek/sspm/$(SSPM_VERSION)/$(MET_SSPM_IPI)========)
             $(info ======== disable ALL ondiemet feature ========)
 
             SYS_SSPM_READY := n
