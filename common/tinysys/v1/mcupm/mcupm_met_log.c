@@ -242,7 +242,7 @@ int mcupm_log_init(struct device *dev)
 		}
 		if (get_virt_sym) {
 			mcupm_log_phy_addr = get_virt_sym(MCUPM_MET_ID);
-			PR_BOOTMSG("mcupm_log_phy_addr=%p\n", mcupm_log_phy_addr);
+			PR_BOOTMSG("mcupm_log_phy_addr=%u\n", (unsigned int) mcupm_log_phy_addr);
 		} else {
 			PR_BOOTMSG("symbol_get mcupm_reserve_mem_get_phys failure\n");
 		}

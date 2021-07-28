@@ -215,9 +215,12 @@ static int ondiemet_sspm_process_argument(const char *arg, int len)
 	int i = 0;
 	int rts_event_id = -1;
 	int res = 0;
+	int ret = 0;
+	int reset_data = 0;
 	char *line = NULL;
 	char *token = NULL;
 	unsigned int (*update_sspm_met_evnet_header_sym)(void*, unsigned int) = NULL;
+	struct sspm_met_evnet_header old_data;
 
 	update_sspm_met_evnet_header_sym = symbol_get(update_sspm_met_evnet_header);
 	if (update_sspm_met_evnet_header_sym) {
@@ -225,7 +228,7 @@ static int ondiemet_sspm_process_argument(const char *arg, int len)
 			CUR_MET_RTS_EVENT_NUM);
 	}
 
-	for (i = 0; met_evnet_header[i].rts_event_name && i < MAX_MET_RTS_EVENT_NUM; i++) {
+	for (i = 0; (i < MAX_MET_RTS_EVENT_NUM) && met_evnet_header[i].rts_event_name; i++) {
 		if (strcmp(met_evnet_header[i].rts_event_name, arg) == 0) {
 			rts_event_id = i;
 			break;
@@ -240,33 +243,72 @@ static int ondiemet_sspm_process_argument(const char *arg, int len)
 		if (line == NULL) {
 			return -1;
 		}
+
 		ptr = line;
 		token = strsep(&line, "=");
+		if (token == NULL) {
+			ret = -1;
+			goto parsing_fail;
+		}
 
 		/* rts_event_id, */
 		token = strsep(&line, ";");
+		if (token == NULL) {
+			ret = -1;
+			goto parsing_fail;
+		}
+
 		res = kstrtoint(token, 10, &rts_event_id);
-		met_evnet_header[rts_event_id].rts_event_id = rts_event_id;
+		if (rts_event_id >= 0) {
+			memcpy(&old_data, &met_evnet_header[rts_event_id], sizeof(struct sspm_met_evnet_header));
+			met_evnet_header[rts_event_id].rts_event_id = rts_event_id;
 
-		/* rts_event_name */
-		token = strsep(&line, ";");
-		met_evnet_header[rts_event_id].rts_event_name = token;
+			/* rts_event_name */
+			token = strsep(&line, ";");
+			if (token == NULL) {
+				ret = -1;
+				reset_data = 1;
+				goto parsing_fail;
+			}
 
-		/* chart_line_name */
-		token = strsep(&line, ";");
-		met_evnet_header[rts_event_id].chart_line_name = token;
+			met_evnet_header[rts_event_id].rts_event_name = token;
 
-		/* key_list */
-		token = strsep(&line, ";\n");
-		met_evnet_header[rts_event_id].key_list = token;
+			/* chart_line_name */
+			token = strsep(&line, ";");
+			if (token == NULL) {
+				ret = -1;
+				reset_data = 1;
+				goto parsing_fail;
+			}
 
-		update_rts_event_tbl[rts_event_id] = ptr;
+			met_evnet_header[rts_event_id].chart_line_name = token;
+
+			/* key_list */
+			token = strsep(&line, ";\n");
+			if (token == NULL) {
+				ret = -1;
+				reset_data = 1;
+				goto parsing_fail;
+			}
+
+			met_evnet_header[rts_event_id].key_list = token;
+
+			update_rts_event_tbl[rts_event_id] = ptr;
+		}
 	}
 
-	if (rts_event_id >= 0) {
+	if (rts_event_id >= 0)
 		update_event_id_flag(rts_event_id);
-	}
 
-	return 0;
+	return ret;
+
+parsing_fail:
+	if (line)
+		kfree(line);
+
+	if (reset_data)
+		memcpy(&met_evnet_header[rts_event_id], &old_data, sizeof(struct sspm_met_evnet_header));
+
+	return ret;
 }
 EXPORT_SYMBOL(met_sspm_common);
